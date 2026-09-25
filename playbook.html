@@ -1848,6 +1848,19 @@
                 gap: 0.5rem;
             }
 
+            .step-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.45rem;
+                width: 100%;
+                margin-bottom: 0.35rem;
+            }
+
+            .step-header .cmd-node {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
             .cmd-node {
                 width: 100%;
                 min-height: 44px;
@@ -3379,7 +3392,7 @@
                     "category": "Identity & System",
                     "name": "hostname / hostname -I",
                     "intent": "Identify server hostname and assigned IP addresses",
-                    "mnemonic": "🏷️ <strong>`-I` = Internal IP</strong>. Remember capital <span class='syn-tag'>-I</span> gives Interface IPs, whereas lowercase <span class='syn-tag'>-i</span> gives loopback.",
+                    "mnemonic": "🏷️ <strong><span class='syn-tag'>-I</span> = Internal IP</strong>. Remember capital <span class='syn-tag'>-I</span> gives Interface IPs, whereas lowercase <span class='syn-tag'>-i</span> gives loopback.",
                     "flags": [
                               {
                                         "flag": "-I",
@@ -3426,7 +3439,7 @@
                     "category": "Identity & System",
                     "name": "uname -rm",
                     "intent": "Check Linux kernel release and CPU architecture",
-                    "mnemonic": "⚙️ <strong>`-r -m` = Release & Machine</strong>. Remember: <span class='syn-tag'>r</span> for kernel Release, <span class='syn-tag'>m</span> for Machine arch.",
+                    "mnemonic": "⚙️ <strong><span class='syn-tag'>-r -m</span> = Release & Machine</strong>. Remember: <span class='syn-tag'>r</span> for kernel Release, <span class='syn-tag'>m</span> for Machine arch.",
                     "flags": [
                               {
                                         "flag": "-r",
@@ -3453,7 +3466,7 @@
                     "category": "Identity & System",
                     "name": "pwd -P",
                     "intent": "Resolve real physical path through symlinks",
-                    "mnemonic": "🔗 <strong>`-P` = Physical Path</strong>. Bypasses symlink shortcuts (`/shortcut`) to reveal true disk location (`/real/path`).",
+                    "mnemonic": "🔗 <strong><span class='syn-tag'>-P</span> = Physical Path</strong>. Bypasses symlink shortcuts (<span class='syn-tag'>/shortcut</span>) to reveal true disk location (<span class='syn-tag'>/real/path</span>).",
                     "flags": [
                               {
                                         "flag": "-P",
@@ -3476,7 +3489,7 @@
                     "category": "Identity & System",
                     "name": "ls -ltra",
                     "intent": "List all files sorted by time in reverse (newest at bottom)",
-                    "mnemonic": "⏱️ <strong>Newest Log at the Bottom!</strong> `-t` sorts by time, `-r` reverses so the latest modified log file sits right above your terminal prompt.",
+                    "mnemonic": "⏱️ <strong>Newest Log at the Bottom!</strong> <span class='syn-tag'>-t</span> sorts by time, <span class='syn-tag'>-r</span> reverses so the latest modified log file sits right above your terminal prompt.",
                     "flags": [
                               {
                                         "flag": "-l",
@@ -3512,7 +3525,7 @@
                     "category": "Identity & System",
                     "name": "type &lt;cmd&gt;",
                     "intent": "Check if command is shell builtin, alias, or PATH binary",
-                    "mnemonic": "🔍 <strong>'What type of command is this?'</strong> Answers whether `python` is pointing to system `/usr/bin/python` or a virtualenv wrapper.",
+                    "mnemonic": "🔍 <strong>'What type of command is this?'</strong> Answers whether <span class='syn-tag'>python</span> is pointing to system <span class='syn-tag'>/usr/bin/python</span> or a virtualenv wrapper.",
                     "flags": [
                               {
                                         "flag": "&lt;cmd&gt;",
@@ -3535,7 +3548,7 @@
                     "category": "Identity & System",
                     "name": "man / tldr / help",
                     "intent": "Lookup official command manuals & concise real-world examples",
-                    "mnemonic": "📚 <strong>RTFM Hierarchy</strong>:<br>• `tldr &lt;cmd&gt;` = Short, practical community examples.<br>• `man &lt;cmd&gt;` = Official Unix manual page.<br>• `help &lt;cmd&gt;` = Builtin help for shell keywords (`cd`, `export`).<br>• `apropos &lt;keyword&gt;` = Search manuals by keyword.",
+                    "mnemonic": "📚 <strong>RTFM Hierarchy</strong>:<br>• <span class='syn-tag'>tldr &lt;cmd&gt;</span> = Short, practical community examples.<br>• <span class='syn-tag'>man &lt;cmd&gt;</span> = Official Unix manual page.<br>• <span class='syn-tag'>help &lt;cmd&gt;</span> = Builtin help for shell keywords (<span class='syn-tag'>cd</span>, <span class='syn-tag'>export</span>).<br>• <span class='syn-tag'>apropos &lt;keyword&gt;</span> = Search manuals by keyword.",
                     "flags": [
                               {
                                         "flag": "tldr &lt;cmd&gt;",
@@ -3857,7 +3870,7 @@
                     "category": "CPU & System Load",
                     "name": "top",
                     "intent": "Locate the exact PID causing high CPU or Memory consumption",
-                    "mnemonic": "⌨️ <strong>Press `P` for Processor, `M` for Memory</strong>. Remember: <span class='syn-tag'>P</span> = CPU %, <span class='syn-tag'>M</span> = RAM MB.",
+                    "mnemonic": "⌨️ <strong>Press <span class='syn-tag'>P</span> for Processor, <span class='syn-tag'>M</span> for Memory</strong>. Remember: <span class='syn-tag'>P</span> = CPU %, <span class='syn-tag'>M</span> = RAM MB.",
                     "flags": [
                               {
                                         "flag": "P",
@@ -3899,7 +3912,7 @@
                     ],
                     "cmdFull": "btop",
                     "output": "[ btop TUI Monitor ]\nCPU [|||||||||||||| 92%] Core 0: 100% | Core 1: 84%\nMem [|||||||||||    68%] 10.88 GiB / 16.00 GiB\nTasks: 142  Threads: 420  PID: 4512 python3 (98.4% CPU)",
-                    "metric": "Modern alternative to `top`. Displays per-core CPU load, disk I/O graphs, memory pressure, and process tree structures.",
+                    "metric": "Modern alternative to <span class='syn-tag'>top</span>. Displays per-core CPU load, disk I/O graphs, memory pressure, and process tree structures.",
                     "tags": [
                               "btop",
                               "htop",
@@ -3972,7 +3985,7 @@
                     "category": "Disk & Storage",
                     "name": "df -h",
                     "intent": "Check mount points to see WHICH filesystem is 100% full",
-                    "mnemonic": "💽 <strong>`df` = Drive Fullness (% Mounted)</strong>. Answers: <em>Which mount point (e.g. / or /var) is out of space?</em>",
+                    "mnemonic": "💽 <strong><span class='syn-tag'>df</span> = Drive Fullness (% Mounted)</strong>. Answers: <em>Which mount point (e.g. / or /var) is out of space?</em>",
                     "flags": [
                               {
                                         "flag": "-h",
@@ -3996,7 +4009,7 @@
                     "category": "Disk & Storage",
                     "name": "du -h --max-depth=1 /path",
                     "intent": "Drill into a full mount to find WHICH DIRECTORY ate space",
-                    "mnemonic": "🔍 <strong>`du` = Directory Usage</strong>. Answers: <em>Which folder (e.g. /var/log) ate 30GB?</em>",
+                    "mnemonic": "🔍 <strong><span class='syn-tag'>du</span> = Directory Usage</strong>. Answers: <em>Which folder (e.g. /var/log) ate 30GB?</em>",
                     "flags": [
                               {
                                         "flag": "-h",
@@ -4050,7 +4063,7 @@
                     "category": "Disk & Storage",
                     "name": "truncate -s 0 /path/to/*.log",
                     "intent": "Instantly shrink active log files to 0 bytes without deleting file handles or restarting services",
-                    "mnemonic": "✂️ <strong>`truncate` = Zero-Downtime Shrink</strong>. Shrinks file size to 0 bytes while keeping open File Descriptors intact so active daemons continue logging without crashing.",
+                    "mnemonic": "✂️ <strong><span class='syn-tag'>truncate</span> = Zero-Downtime Shrink</strong>. Shrinks file size to 0 bytes while keeping open File Descriptors intact so active daemons continue logging without crashing.",
                     "flags": [
                               {
                                         "flag": "-s 0",
@@ -4079,7 +4092,7 @@
                     "category": "Disk & Storage",
                     "name": "find /path -name '*.log' -mtime +7",
                     "intent": "Live real-time filesystem tree walk filtering by name, age, or size",
-                    "mnemonic": "🐢 <strong>Live Real-time Disk Walk</strong>. Searches actual live files by age (`-mtime +7` = older than 7 days) or size (`-size +100M`). Combine with `-delete` to purge old log clutter!",
+                    "mnemonic": "🐢 <strong>Live Real-time Disk Walk</strong>. Searches actual live files by age (<span class='syn-tag'>-mtime +7</span> = older than 7 days) or size (<span class='syn-tag'>-size +100M</span>). Combine with <span class='syn-tag'>-delete</span> to purge old log clutter!",
                     "flags": [
                               {
                                         "flag": "-name 'pattern'",
@@ -4115,7 +4128,7 @@
                     "category": "Disk & Storage",
                     "name": "locate <filename>",
                     "intent": "Instant filename substring search using pre-indexed database",
-                    "mnemonic": "⚡ <strong>Pre-indexed DB Search</strong>. Reads `/var/lib/plocate/plocate.db` for instant speed. ⚠️ Run `sudo updatedb` to index newly created files!",
+                    "mnemonic": "⚡ <strong>Pre-indexed DB Search</strong>. Reads <span class='syn-tag'>/var/lib/plocate/plocate.db</span> for instant speed. ⚠️ Run <span class='syn-tag'>sudo updatedb</span> to index newly created files!",
                     "flags": [
                               {
                                         "flag": "locate <pattern>",
@@ -4142,7 +4155,7 @@
                     "category": "Disk & Storage",
                     "name": "grep -R -i & zgrep",
                     "intent": "Search text content INSIDE uncompressed and compressed (.gz) files",
-                    "mnemonic": "📄 <strong>Content Searcher</strong>. `grep -R -i 'pattern' /path` searches text inside files. Pro-tip: Use `zgrep` to search rotated `.gz` log archives directly without extracting!",
+                    "mnemonic": "📄 <strong>Content Searcher</strong>. <span class='syn-tag'>grep -R -i 'pattern' /path</span> searches text inside files. Pro-tip: Use <span class='syn-tag'>zgrep</span> to search rotated <span class='syn-tag'>.gz</span> log archives directly without extracting!",
                     "flags": [
                               {
                                         "flag": "-R",
@@ -4178,7 +4191,7 @@
                     "category": "Services & Automation",
                     "name": "cut -d' ' -f4",
                     "intent": "Extract specific columns or character ranges from structured log lines and CSVs",
-                    "mnemonic": "✂️ <strong>Column Extractor</strong>. `cut` splits text streams by delimiter (`-d`) and extracts target fields (`-f`). Perfect for log pipelines: `grep 'ERROR' app.log | cut -d' ' -f4 | sort | uniq -c`.",
+                    "mnemonic": "✂️ <strong>Column Extractor</strong>. <span class='syn-tag'>cut</span> splits text streams by delimiter (<span class='syn-tag'>-d</span>) and extracts target fields (<span class='syn-tag'>-f</span>). Perfect for log pipelines: <span class='syn-tag'>grep 'ERROR' app.log | cut -d' ' -f4 | sort | uniq -c</span>.",
                     "flags": [
                               {
                                         "flag": "-d 'char'",
@@ -4210,7 +4223,7 @@
                     "category": "Services & Automation",
                     "name": "tee -a logfile.txt",
                     "intent": "Split standard output to screen AND append to file simultaneously",
-                    "mnemonic": "🔀 <strong>Stream Splitter</strong>. `tee` reads from `stdin` and writes simultaneously to `stdout` (terminal display) AND files! Use `-a` to append rather than overwrite log files.",
+                    "mnemonic": "🔀 <strong>Stream Splitter</strong>. <span class='syn-tag'>tee</span> reads from <span class='syn-tag'>stdin</span> and writes simultaneously to <span class='syn-tag'>stdout</span> (terminal display) AND files! Use <span class='syn-tag'>-a</span> to append rather than overwrite log files.",
                     "flags": [
                               {
                                         "flag": "command | tee file",
@@ -4282,7 +4295,7 @@
                     "category": "Identity & Context",
                     "name": "which <binary>",
                     "intent": "Resolve exact binary execution path in $PATH environment variable",
-                    "mnemonic": "🧭 <strong>PATH Lookup Only</strong>. Resolves which binary file $PATH will execute (e.g. `/usr/bin/python3`). Does NOT search arbitrary disk files!",
+                    "mnemonic": "🧭 <strong>PATH Lookup Only</strong>. Resolves which binary file $PATH will execute (e.g. <span class='syn-tag'>/usr/bin/python3</span>). Does NOT search arbitrary disk files!",
                     "flags": [
                               {
                                         "flag": "which <name>",
@@ -4309,7 +4322,7 @@
                     "category": "Identity & Context",
                     "name": "dpkg -s &lt;pkg&gt; & dpkg -S /path",
                     "intent": "Query local Debian/Ubuntu installed package status, file listing, and ownership reverse-lookup",
-                    "mnemonic": "📦 <strong>Local Package Inspector</strong>. Use `dpkg -s &lt;pkg&gt;` to verify if package is installed before script execution; use `dpkg -S /path` to find which package installed a binary!",
+                    "mnemonic": "📦 <strong>Local Package Inspector</strong>. Use <span class='syn-tag'>dpkg -s &lt;pkg&gt;</span> to verify if package is installed before script execution; use <span class='syn-tag'>dpkg -S /path</span> to find which package installed a binary!",
                     "flags": [
                               {
                                         "flag": "dpkg -s &lt;pkg&gt;",
@@ -4345,7 +4358,7 @@
                     "category": "Disk & Storage",
                     "name": "ps -eo pid,ppid,stat,cmd",
                     "intent": "Find processes stuck in uninterruptible disk wait (STAT=D) or holding unlinked deleted files open",
-                    "mnemonic": "⚙️ <strong>Process & Disk I/O Triage</strong>. `ps -eo pid,ppid,stat,cmd` reveals process states (`D` = uninterruptible disk sleep, `Z` = zombie). Combine with `lsof` to find deleted files holding disk space open!",
+                    "mnemonic": "⚙️ <strong>Process & Disk I/O Triage</strong>. <span class='syn-tag'>ps -eo pid,ppid,stat,cmd</span> reveals process states (<span class='syn-tag'>D</span> = uninterruptible disk sleep, <span class='syn-tag'>Z</span> = zombie). Combine with <span class='syn-tag'>lsof</span> to find deleted files holding disk space open!",
                     "flags": [
                               {
                                         "flag": "STAT = D",
@@ -4571,7 +4584,7 @@
                     "category": "Services & Logs",
                     "name": "journalctl [-u <service> | -k -e] [-n 100 -f]",
                     "intent": "Tail live host systemd service logs or inspect kernel ring buffer for OOM events",
-                    "mnemonic": "📰 <strong>`-u -n -f` = Service Logs</strong> (`-u` Unit, `-n` Lines, `-f` Follow)<br>🚨 <strong>`-k -e` = Kernel OOM Triage</strong> (`-k` Kernel log buffer only, `-e` Jump to End of log for latest OOM events)",
+                    "mnemonic": "📰 <strong><span class='syn-tag'>-u -n -f</span> = Service Logs</strong> (<span class='syn-tag'>-u</span> Unit, <span class='syn-tag'>-n</span> Lines, <span class='syn-tag'>-f</span> Follow)<br>🚨 <strong><span class='syn-tag'>-k -e</span> = Kernel OOM Triage</strong> (<span class='syn-tag'>-k</span> Kernel log buffer only, <span class='syn-tag'>-e</span> Jump to End of log for latest OOM events)",
                     "flags": [
                               {
                                         "flag": "-k / --dmesg",
@@ -4596,7 +4609,7 @@
                     ],
                     "cmdFull": "journalctl -k -e | grep -i oom",
                     "output": "Sep 24 10:15:22 worker-node kernel: Out of memory: Killed process 4512 (python3) total-vm:8450112kB, anon-rss:7890120kB",
-                    "metric": "Host systemd & Kernel logs. 🐳 <strong>Podman Alternative:</strong> Use `podman logs --tail 100 <container>` or `podman inspect <container> --format '{{.State.OOMKilled}}'`. ",
+                    "metric": "Host systemd & Kernel logs. 🐳 <strong>Podman Alternative:</strong> Use <span class='syn-tag'>podman logs --tail 100 <container></span> or <span class='syn-tag'>podman inspect <container> --format '{{.State.OOMKilled}}'</span>. ",
                     "tags": [
                               "journalctl",
                               "logs",
@@ -4614,7 +4627,7 @@
                     "category": "Services & Logs",
                     "name": "podman / docker logs -f",
                     "intent": "Tail container application logs (Container PID 1)",
-                    "mnemonic": "🐳 <strong>No systemd inside containers!</strong> PID 1 inside containers is the app itself. Use `podman logs -f &lt;container&gt;` instead of `journalctl`.",
+                    "mnemonic": "🐳 <strong>No systemd inside containers!</strong> PID 1 inside containers is the app itself. Use <span class='syn-tag'>podman logs -f &lt;container&gt;</span> instead of <span class='syn-tag'>journalctl</span>.",
                     "flags": [
                               {
                                         "flag": "-f / --follow",
@@ -4755,7 +4768,7 @@
                     "category": "Services & Logs",
                     "name": "pgrep / pkill",
                     "intent": "Modern ergonomic process lookup & batch termination by name",
-                    "mnemonic": "🔍 <strong>`pgrep` = Process Grep | `pkill` = Process Kill</strong>.<br>• <span class='syn-tag'>pgrep -a python</span> = Shows PIDs + full command line.<br>• <span class='syn-tag'>pkill -f worker.py</span> = Kills all matching processes in 1 line without manually copying PIDs!",
+                    "mnemonic": "🔍 <strong><span class='syn-tag'>pgrep</span> = Process Grep | <span class='syn-tag'>pkill</span> = Process Kill</strong>.<br>• <span class='syn-tag'>pgrep -a python</span> = Shows PIDs + full command line.<br>• <span class='syn-tag'>pkill -f worker.py</span> = Kills all matching processes in 1 line without manually copying PIDs!",
                     "flags": [
                               {
                                         "flag": "pgrep -a <pattern>",
@@ -4772,7 +4785,7 @@
                     ],
                     "cmdFull": "pgrep -a python3",
                     "output": "4512 python3 /opt/airflow/dags/worker.py\n4515 python3 /opt/airflow/dags/worker.py",
-                    "metric": "Modern alternative to `ps -ef | grep ...`. Fast, clean, and prevents accidentally killing the grep process itself!",
+                    "metric": "Modern alternative to <span class='syn-tag'>ps -ef | grep ...</span>. Fast, clean, and prevents accidentally killing the grep process itself!",
                     "tags": [
                               "pgrep",
                               "pkill",
@@ -4788,7 +4801,7 @@
                     "category": "Services & Logs",
                     "name": "ulimit / prlimit",
                     "intent": "Inspect and modify file descriptor caps (open file limits)",
-                    "mnemonic": "📂 <strong>`ulimit` (shell cap) vs `prlimit` (live PID cap)</strong>.<br>• <span class='syn-tag'>ulimit -n</span> = Check max open file descriptors for current session.<br>• <span class='syn-tag'>prlimit --pid=<PID> --nofile=65536</span> = Bump open file limits on a live running process without restarting it!",
+                    "mnemonic": "📂 <strong><span class='syn-tag'>ulimit</span> (shell cap) vs <span class='syn-tag'>prlimit</span> (live PID cap)</strong>.<br>• <span class='syn-tag'>ulimit -n</span> = Check max open file descriptors for current session.<br>• <span class='syn-tag'>prlimit --pid=<PID> --nofile=65536</span> = Bump open file limits on a live running process without restarting it!",
                     "flags": [
                               {
                                         "flag": "ulimit -n",
@@ -4805,7 +4818,7 @@
                     ],
                     "cmdFull": "ulimit -n",
                     "output": "1024",
-                    "metric": "Fixes `OSError: [Errno 24] Too many open files` in high-concurrency Python pipelines & parquet-tools processing.",
+                    "metric": "Fixes <span class='syn-tag'>OSError: [Errno 24] Too many open files</span> in high-concurrency Python pipelines & parquet-tools processing.",
                     "tags": [
                               "ulimit",
                               "prlimit",
@@ -4968,7 +4981,7 @@
                     ],
                     "cmdFull": "lsof +L1",
                     "output": "COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME\njava    12845 root    4u   REG    8,1 15485760   42 /var/log/app.log (deleted)",
-                    "metric": "Explains discrepancy between `df` and `du` when deleted files aren't freed.",
+                    "metric": "Explains discrepancy between <span class='syn-tag'>df</span> and <span class='syn-tag'>du</span> when deleted files aren't freed.",
                     "tags": [
                               "lsof",
                               "deleted",
@@ -5014,7 +5027,7 @@
                     "category": "Network & Ports",
                     "name": "ss -tulpn — Active Socket Statistics",
                     "intent": "List all listening TCP/UDP sockets and associated process PIDs",
-                    "mnemonic": "🔌 <strong>'Socket Summary'</strong> — Modern replacement for `netstat` showing local port bindings.",
+                    "mnemonic": "🔌 <strong>'Socket Summary'</strong> — Modern replacement for <span class='syn-tag'>netstat</span> showing local port bindings.",
                     "flags": [
                               {
                                         "flag": "-t",
@@ -5522,7 +5535,7 @@
                     "category": "Network & Ports",
                     "name": "ip — Routing, Network Devices, Interfaces & Tunnels",
                     "intent": "Inspect and configure network interfaces, IP addresses, and routing tables",
-                    "mnemonic": "🌐 <strong>'IP Tool'</strong> — Modern iproute2 engine replacing `ifconfig` and `route`.",
+                    "mnemonic": "🌐 <strong>'IP Tool'</strong> — Modern iproute2 engine replacing <span class='syn-tag'>ifconfig</span> and <span class='syn-tag'>route</span>.",
                     "flags": [
                               {
                                         "flag": "addr show",
@@ -7322,7 +7335,7 @@
                             <p style="font-size:0.88rem; color:var(--text-body); margin-bottom:0.75rem;">${escapeHtml(cmd.intent)}</p>
                             
                             <div class="mnemonic-card" style="margin-bottom:0.75rem;">
-                                <div class="mnemonic-text">${cmd.mnemonic}</div>
+                                <div class="mnemonic-text">${formatCodeBackticks(cmd.mnemonic)}</div>
                             </div>
 
                             <div style="margin-bottom:0.75rem;">
