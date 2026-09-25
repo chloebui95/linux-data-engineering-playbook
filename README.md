@@ -1,5 +1,7 @@
 # 🥑 Linux Data Engineering Playbook
 
+> 🌐 **Live Site**: [chloebui95.github.io/linux-data-engineering-playbook](https://chloebui95.github.io/linux-data-engineering-playbook/)
+
 My personal notebook and cheat sheet focusing on the practical Linux stuff I actually use as a Data Engineer (PySpark, Airflow, Docker, Postgres, and log debugging). 
 
 This doesn't cover every single Linux command out there - just the essential tools, metrics, and production incident notes that keep data pipelines running smoothly.
