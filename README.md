@@ -46,4 +46,4 @@ Quick reference notes for common pipeline headaches documented in this playbook:
 
 ## License
 
-MIT License.
+MIT License - feel free to use, adapt, or share for your own learning!
