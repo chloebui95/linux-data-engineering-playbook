@@ -1667,6 +1667,240 @@
             background: var(--c-soft-sage);
             color: var(--text-heading);
         }
+
+        /* ==========================================================================
+           MOBILE UI/UX & RESPONSIVE SCALING OVERRIDES (max-width: 768px & 480px)
+           Leaves Desktop Screens (>= 1024px) 100% Identical and Unchanged.
+           ========================================================================== */
+
+        @media (max-width: 768px) {
+            /* 1. Viewport & Body Scrolling Reset */
+            html, body {
+                height: auto !important;
+                min-height: 100vh;
+                overflow-x: hidden !important;
+                overflow-y: auto !important;
+            }
+
+            /* 2. Container Auto-Scaling (Fixed 16:9 -> Fluid Vertical Scrolling) */
+            .app-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                height: auto !important;
+                min-height: 100vh;
+                max-height: none !important;
+                padding: 0.85rem 0.85rem 2.5rem 0.85rem !important;
+                overflow: visible !important;
+            }
+
+            /* 3. Header & Toolbar Layout Stacking */
+            .app-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.65rem;
+                margin-bottom: 0.85rem;
+            }
+
+            .header-brand {
+                width: 100%;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.65rem;
+                width: 100%;
+            }
+
+            /* Search Box 100% Width + 44px Touch Target */
+            .search-box {
+                width: 100% !important;
+                min-height: 44px;
+                padding: 0.5rem 0.85rem;
+            }
+
+            .search-box input {
+                font-size: 0.95rem; /* Prevents auto-zoom on iOS Safari */
+                min-height: 44px;
+            }
+
+            /* Horizontal Touch Scroll for Category Filter Pills */
+            .filter-group {
+                width: 100%;
+                display: flex;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                touch-action: pan-x;
+                padding-bottom: 0.4rem;
+                gap: 0.4rem;
+                scroll-snap-type: x mandatory;
+            }
+
+            .filter-pill {
+                min-height: 44px;
+                min-width: 44px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0.55rem 0.95rem;
+                font-size: 0.84rem;
+                flex-shrink: 0;
+                touch-action: manipulation;
+                scroll-snap-align: start;
+            }
+
+            /* 4. Flowchart Board Reset */
+            .flowchart-board {
+                overflow-y: visible !important;
+                height: auto !important;
+                min-height: auto !important;
+                flex: none !important;
+                padding: 0.75rem !important;
+            }
+
+            /* 5. Decision Tree (5-Column Grid -> Stacked Cards) */
+            .tree-row {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 0.65rem;
+                padding: 0.85rem;
+                border-left-width: 5px !important;
+            }
+
+            .symptom-card {
+                width: 100%;
+                min-height: 44px;
+                justify-content: space-between;
+                font-size: 0.85rem;
+                padding: 0.6rem 0.85rem;
+                touch-action: manipulation;
+            }
+
+            /* Flow line connector converts horizontal arrow to vertical connector */
+            .flow-line {
+                transform: rotate(90deg);
+                margin: 0.15rem auto;
+                font-size: 1rem;
+            }
+
+            .decision-box {
+                width: 100%;
+                font-size: 0.82rem;
+                padding: 0.65rem 0.85rem;
+                min-height: 44px;
+            }
+
+            .action-group {
+                width: 100%;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .cmd-node {
+                width: 100%;
+                min-height: 44px;
+                justify-content: space-between;
+                padding: 0.6rem 0.85rem;
+                touch-action: manipulation;
+            }
+
+            .cmd-label {
+                font-size: 0.85rem;
+            }
+
+            /* 6. Slide-Over Modal Drawer Full Width */
+            .modal-container {
+                width: 100vw !important;
+                max-width: 100vw !important;
+                height: 100vh;
+                border-left: none;
+                padding: 1.25rem 1rem 4.5rem 1rem;
+                box-shadow: none;
+            }
+
+            .modal-close {
+                width: 44px !important;
+                height: 44px !important;
+                min-width: 44px;
+                min-height: 44px;
+                top: 1rem;
+                right: 1rem;
+                font-size: 1.3rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                touch-action: manipulation;
+            }
+
+            .subpage-tabs {
+                width: 100%;
+                overflow-x: auto;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+                touch-action: pan-x;
+                gap: 0.4rem;
+                padding-bottom: 0.4rem;
+            }
+
+            .subpage-tab {
+                min-height: 44px;
+                padding: 0.6rem 0.95rem;
+                font-size: 0.85rem;
+                flex-shrink: 0;
+                touch-action: manipulation;
+            }
+        }
+
+        /* Smartphone Small Screen Grids (< 640px / < 480px) */
+        @media (max-width: 640px) {
+            .incident-steps-grid,
+            .aligned-cmd-grid,
+            .de-cmd-grid {
+                grid-template-columns: 1fr !important;
+                gap: 0.85rem;
+            }
+
+            .incident-step-card,
+            .aligned-cmd-card,
+            .de-cmd-card {
+                min-height: 44px;
+                padding: 0.85rem;
+            }
+
+            .de-why-box {
+                grid-template-columns: 1fr;
+                gap: 0.4rem;
+            }
+
+            .de-why-badge {
+                align-self: flex-start;
+            }
+        }
+
+        /* Bottom-Sheet Modal Option for Extra-Small Screens (< 480px) */
+        @media (max-width: 480px) {
+            .modal-overlay {
+                align-items: flex-end;
+            }
+
+            .modal-container {
+                width: 100vw !important;
+                max-width: 100vw !important;
+                height: 90vh !important;
+                top: auto !important;
+                bottom: 0 !important;
+                border-top-left-radius: 20px;
+                border-top-right-radius: 20px;
+                transform: translateY(100%) !important;
+                padding-bottom: 5rem;
+            }
+
+            .modal-overlay.active .modal-container {
+                transform: translateY(0) !important;
+            }
+        }
     </style>
 </head>
 <body>
