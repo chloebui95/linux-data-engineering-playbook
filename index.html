@@ -2800,7 +2800,7 @@
                             <div class="mnemonic-text" id="modalMnemonic"></div>
                         </div>
 
-                        <div class="section-card">
+                        <div class="section-card" id="modalFlagsCard">
                             <h3>🔑 Flag & Argument Breakdown</h3>
                             <div class="flags-grid" id="modalFlags"></div>
                         </div>
@@ -7027,13 +7027,21 @@
             document.getElementById('modalOutput').textContent = cmd.output;
             document.getElementById('modalMetric').innerHTML = formatCodeBackticks(cmd.metric);
 
-            const flagsGrid = document.getElementById('modalFlags');
-            flagsGrid.innerHTML = cmd.flags.map(f => `
-                <div class="flag-item">
-                    <div class="flag-name">${formatCodeBackticks(escapeHtml(f.flag))}</div>
-                    <div class="flag-desc">${formatCodeBackticks(escapeHtml(f.desc))}</div>
-                </div>
-            `).join('');
+            const flagsCard = document.getElementById('modalFlagsCard');
+            const hasRealFlags = cmd.flags && cmd.flags.length > 0 && !cmd.flags.every(f => ['none', 'n/a', ''].includes(f.flag.trim().toLowerCase()));
+
+            if (hasRealFlags) {
+                if (flagsCard) flagsCard.style.display = 'block';
+                const flagsGrid = document.getElementById('modalFlags');
+                flagsGrid.innerHTML = cmd.flags.map(f => `
+                    <div class="flag-item">
+                        <div class="flag-name">${formatCodeBackticks(escapeHtml(f.flag))}</div>
+                        <div class="flag-desc">${formatCodeBackticks(escapeHtml(f.desc))}</div>
+                    </div>
+                `).join('');
+            } else {
+                if (flagsCard) flagsCard.style.display = 'none';
+            }
 
             const copyBtn = document.getElementById('copyCmdBtn');
             copyBtn.onclick = () => {
@@ -7339,17 +7347,19 @@
                                 <div class="mnemonic-text">${formatCodeBackticks(cmd.mnemonic)}</div>
                             </div>
 
-                            <div style="margin-bottom:0.75rem;">
-                                <strong style="font-size:0.8rem; text-transform:uppercase; color:var(--text-muted);">Flag Breakdown:</strong>
-                                <div class="flags-grid" style="margin-top:0.4rem;">
-                                    ${cmd.flags.map(f => `
-                                        <div class="flag-item">
-                                            <div class="flag-name">${escapeHtml(f.flag)}</div>
-                                            <div class="flag-desc">${escapeHtml(f.desc)}</div>
-                                        </div>
-                                    `).join('')}
+                            ${(cmd.flags && cmd.flags.length > 0 && !cmd.flags.every(f => ['none', 'n/a', ''].includes(f.flag.trim().toLowerCase()))) ? `
+                                <div style="margin-bottom:0.75rem;">
+                                    <strong style="font-size:0.8rem; text-transform:uppercase; color:var(--text-muted);">Flag Breakdown:</strong>
+                                    <div class="flags-grid" style="margin-top:0.4rem;">
+                                        ${cmd.flags.map(f => `
+                                            <div class="flag-item">
+                                                <div class="flag-name">${escapeHtml(f.flag)}</div>
+                                                <div class="flag-desc">${escapeHtml(f.desc)}</div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
                                 </div>
-                            </div>
+                            ` : ''}
 
                             <div class="terminal-header" style="margin-top:0.5rem;">
                                 <div class="terminal-dots">
