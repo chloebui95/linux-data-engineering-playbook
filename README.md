@@ -42,21 +42,6 @@ Quick reference notes for common pipeline headaches documented in this playbook:
 
 ---
 
-## How to Run
-
-No build step needed - runs directly in your browser.
-
-```bash
-# Option 1: Open directly
-open index.html
-
-# Option 2: Serve locally
-python3 -m http.server 8000
-```
-Visit `http://localhost:8000`.
-
----
-
 ## License
 
 MIT License.
