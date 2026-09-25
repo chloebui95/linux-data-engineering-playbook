@@ -61,7 +61,7 @@
         /* Top Navigation Header */
         .top-nav {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start; gap: 0.5rem;
             align-items: center;
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
@@ -668,7 +668,9 @@
             font-weight: 700;
             white-space: nowrap;
         }
-    </style>
+    
+        .terminal-header, .terminal-window { display: none !important; }
+</style>
 </head>
 <body>
 

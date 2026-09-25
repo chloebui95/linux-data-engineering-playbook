@@ -956,15 +956,9 @@
             font-weight: 600;
         }
 
+        .terminal-header,
         .terminal-window {
-            background: #231b19;
-            border-bottom-left-radius: 10px;
-            border-bottom-right-radius: 10px;
-            padding: 1rem;
-            font-family: var(--font-mono);
-            font-size: 0.8rem;
-            color: #f6f8f6;
-            overflow-x: auto;
+            display: none !important;
         }
 
         .terminal-prompt {
@@ -1864,7 +1858,8 @@
             .cmd-node {
                 width: 100%;
                 min-height: 44px;
-                justify-content: space-between;
+                justify-content: flex-start;
+                gap: 0.5rem;
                 padding: 0.6rem 0.85rem;
                 touch-action: manipulation;
                 white-space: normal;
@@ -1875,6 +1870,12 @@
                 font-size: 0.85rem;
                 white-space: normal;
                 word-break: break-word;
+            }
+
+            /* Hide Terminal Simulation Box on Mobile Viewports */
+            .terminal-header,
+            .terminal-window {
+                display: none !important;
             }
 
             .de-copy-btn, .modal-back-btn {

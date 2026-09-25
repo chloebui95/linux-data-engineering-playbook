@@ -34,7 +34,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background-color: var(--bg-canvas); color: var(--text-body); font-family: var(--font-sans); line-height: 1.6; padding: 2rem 1rem; min-height: 100vh; }
         .page-container { max-width: 1120px; margin: 0 auto; background: var(--bg-board); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 2.25rem; box-shadow: var(--shadow-card); }
-        .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); }
+        .top-nav { display: flex; justify-content: flex-start; gap: 0.5rem; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); }
         .back-btn { display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-heading); font-weight: 600; font-size: 0.9rem; background: var(--bg-canvas); padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border-subtle); transition: all 0.2s ease; }
         .back-btn:hover { background: var(--c-soft-sage); border-color: var(--c-sage-green); transform: translateX(-2px); }
         .domain-badge { background: #e9edc9; color: #3a5a40; font-size: 0.8rem; font-weight: 700; padding: 0.35rem 0.85rem; border-radius: 20px; border: 1px solid #aac0aa; }
@@ -267,7 +267,9 @@
             font-weight: 700;
             white-space: nowrap;
         }
-    </style>
+    
+        .terminal-header, .terminal-window { display: none !important; }
+</style>
 </head>
 <body>
 
