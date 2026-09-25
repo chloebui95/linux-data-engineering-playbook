@@ -10,9 +10,9 @@ This doesn't cover every single Linux command out there - just the essential too
 
 ## What's Inside
 
-- **Cheatsheet Poster (`handnote_cheatsheet.html`)**: 16:9 poster grid in Avocado & Sage Green.
-- **Interactive Playbook (`linux_cheatsheet.html`)**: Real-world DE incident matrix (OOMs, disk leaks, socket binds).
-- **Quick Search (`index.html`)**: Instant `⌘K` search across 78 production commands.
+- **Cheatsheet Poster (`cheatsheet.html`)**: 16:9 poster grid in Avocado & Sage Green.
+- **Interactive Playbook (`playbook.html` / `index.html`)**: Real-world DE incident matrix (OOMs, disk leaks, socket binds).
+- **Quick Search**: Instant `⌘K` search across 78 production commands.
 
 ---
 

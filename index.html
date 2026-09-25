@@ -1088,16 +1088,21 @@
 
         /* Detail Sub-Navigation & Filter Bar */
         .detail-sticky-nav {
+            position: sticky;
+            top: -0.85rem;
+            z-index: 100;
             display: flex;
             align-items: center;
             gap: 0.35rem;
             overflow-x: auto;
-            background: #ffffff;
-            padding: 0.4rem 0.6rem;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 0.45rem 0.65rem;
             border-radius: 10px;
             border: 1px solid var(--border-subtle);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-            margin-bottom: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            margin-bottom: 0.85rem;
         }
 
         /* Main View Panels */
@@ -1685,7 +1690,7 @@
                 <button class="view-mode-tab" data-view="detail" onclick="switchMainViewMode('detail', this)">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:2px;"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg> Detail Group
                 </button>
-                <a href="handnote_cheatsheet.html" target="_blank" class="view-mode-tab" style="text-decoration:none; display:inline-flex; align-items:center; gap:0.35rem; background:#a18276; border:1px solid #8c6f63; color:#ffffff; font-weight:700;">
+                <a href="cheatsheet.html" target="_blank" class="view-mode-tab" style="text-decoration:none; display:inline-flex; align-items:center; gap:0.35rem; background:#a18276; border:1px solid #8c6f63; color:#ffffff; font-weight:700;">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="m9 14 2 2 4-4"></path></svg> Cheatsheet
                 </a>
             </div>
