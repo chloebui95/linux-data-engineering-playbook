@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPU & System Load — Sub-Page | Linux Server Triage</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --c-tea-green: #cbe896;
+            --c-sage-green: #aac0aa;
+            --c-warm-sand: #fcdfa6;
+            --c-peach: #f4b886;
+            --c-taupe: #a18276;
+
+            --bg-canvas: #f6f8f6;
+            --bg-board: #ffffff;
+            --bg-card: #ffffff;
+            --border-subtle: #e1e8e2;
+            
+            --text-heading: #2d2421;
+            --text-body: #3c322e;
+            --text-muted: #7a6b65;
+            
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'Fira Code', monospace;
+            
+            --shadow-card: 0 4px 12px -2px rgba(161, 130, 118, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg-canvas); color: var(--text-body); font-family: var(--font-sans); line-height: 1.6; padding: 2rem 1rem; min-height: 100vh; }
+        .page-container { max-width: 1120px; margin: 0 auto; background: var(--bg-board); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 2.25rem; box-shadow: var(--shadow-card); }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); }
+        .back-btn { display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-heading); font-weight: 600; font-size: 0.9rem; background: var(--bg-canvas); padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border-subtle); transition: all 0.2s ease; }
+        .back-btn:hover { background: #ffe8d6; border-color: var(--c-peach); transform: translateX(-2px); }
+        .domain-badge { background: #ffe8d6; color: #b05726; font-size: 0.8rem; font-weight: 700; padding: 0.35rem 0.85rem; border-radius: 20px; border: 1px solid #f4b886; }
+        .header-title { font-size: 1.85rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.35rem; }
+        .header-subtitle { color: var(--text-muted); font-size: 0.98rem; margin-bottom: 1.75rem; }
+        
+        .banner-container { background: #fff5ee; border: 1px solid #f4b886; border-radius: 14px; padding: 1.35rem 1.5rem; margin-bottom: 2rem; }
+        .banner-title { font-weight: 700; color: var(--text-heading); font-size: 1.08rem; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.6rem; }
+        .banner-desc { font-size: 0.9rem; color: var(--text-body); line-height: 1.5; }
+
+        .sub-tabs { display: flex; gap: 0.5rem; border-bottom: 2px solid var(--border-subtle); margin-bottom: 1.75rem; overflow-x: auto; white-space: nowrap; }
+        .tab-btn { background: none; border: none; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); padding: 0.75rem 1.25rem; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s ease; white-space: nowrap; }
+        .tab-btn:hover { color: var(--text-heading); background: var(--bg-canvas); border-radius: 6px 6px 0 0; }
+        .tab-btn.active { color: var(--text-heading); border-bottom-color: var(--c-taupe); font-weight: 700; }
+        .tab-panel { display: none; flex-direction: column; gap: 1.75rem; }
+        .tab-panel.active { display: flex; }
+
+        .cmd-block { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.35rem 1.5rem; display: flex; flex-direction: column; gap: 0.9rem; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .cmd-title { font-size: 1.12rem; font-weight: 700; color: var(--text-heading); display: flex; align-items: center; gap: 0.55rem; }
+        .cmd-icon { color: var(--c-taupe); font-family: var(--font-mono); font-weight: 700; }
+        .cmd-intent { font-size: 0.88rem; color: var(--text-muted); font-weight: 500; }
+        .code-box { background: #2d2421; border-radius: 8px; padding: 0.75rem 1rem; font-family: var(--font-mono); font-size: 0.9rem; color: #f6f8f6; display: flex; justify-content: space-between; align-items: center; }
+        .code-text { color: #f4b886; font-weight: 600; }
+        .copy-btn { background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+        .copy-btn:hover { background: #f4b886; color: #2d2421; }
+
+        .flags-box { background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.75rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .flags-box-header { font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 0.35rem; border-bottom: 1px dashed var(--border-subtle); display: flex; align-items: center; gap: 0.4rem; }
+        .flags-box-body { display: flex; flex-direction: column; gap: 0.45rem; }
+        .flag-row { display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; color: var(--text-body); }
+        .flag-code { font-family: var(--font-mono); font-weight: 700; color: var(--text-heading); background: #ffffff; padding: 0.15rem 0.5rem; border-radius: 4px; border: 1px solid var(--border-subtle); font-size: 0.8rem; white-space: nowrap; min-width: 100px; text-align: center; }
+
+        .output-box { background: #faf8f5; color: #2d2421; border: 1px solid #e1e8e2; font-family: var(--font-mono); font-size: 0.83rem; padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; white-space: pre; }
+        .metric-box { background: #ffe8d6; color: #b05726; border: 1px solid #f4b886; border-radius: 8px; padding: 0.65rem 0.95rem; font-size: 0.86rem; font-weight: 500; display: flex; align-items: flex-start; gap: 0.5rem; }
+
+        .cards-grid { display: flex; flex-direction: column; gap: 1rem; }
+        .path-card, .scenario-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.6rem; }
+        .path-header { display: flex; justify-content: space-between; align-items: center; }
+        .path-code { font-family: var(--font-mono); font-weight: 700; font-size: 0.98rem; color: var(--text-heading); background: var(--bg-canvas); padding: 0.2rem 0.5rem; border-radius: 5px; border: 1px solid var(--border-subtle); }
+        .priority-tag { font-size: 0.72rem; font-weight: 700; padding: 0.22rem 0.55rem; border-radius: 5px; }
+        .p-high { background: #fcdfa6; color: #2d2421; border: 1px solid #f4b886; }
+        .p-sys { background: #e1e8e2; color: #4a3e39; border: 1px solid #aac0aa; }
+
+        #toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--text-heading); color: #ffffff; padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; font-weight: 500; box-shadow: 0 4px 16px rgba(0,0,0,0.2); opacity: 0; transform: translateY(10px); transition: all 0.25s ease; pointer-events: none; z-index: 1000; }
+        #toast.show { opacity: 1; transform: translateY(0); }
+
+        /* Consolidated Incident Flow Card Container */
+        .incident-flow-card {
+            background: #ffffff;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1.1rem 1.35rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            box-shadow: var(--shadow-card);
+            transition: all 0.2s ease;
+            margin-bottom: 1rem;
+        }
+
+        .incident-flow-card:hover {
+            border-color: var(--c-taupe);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .incident-flow-card[data-category="identity"] { border-left: 5px solid var(--c-sage-green); }
+        .incident-flow-card[data-category="cpu"]      { border-left: 5px solid var(--c-peach); }
+        .incident-flow-card[data-category="memory"]   { border-left: 5px solid var(--c-warm-sand); }
+        .incident-flow-card[data-category="disk"]     { border-left: 5px solid var(--c-tea-green); }
+        .incident-flow-card[data-category="network"]  { border-left: 5px solid var(--c-taupe); }
+        .incident-flow-card[data-category="services"] { border-left: 5px solid var(--c-sage-green); }
+
+        .incident-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .incident-card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .incident-card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+
+        .incident-card-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Clean Neutral Strategy Banner */
+        .incident-strategy-banner {
+            background: #f6f8f6;
+            border: 1px solid #e1e8e2;
+            border-radius: 8px;
+            padding: 0.65rem 0.85rem;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .rule-badge {
+            color: #4a3e39;
+            font-weight: 700;
+            font-size: 0.82rem;
+            flex-shrink: 0;
+            margin-right: 0.15rem;
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
+        .incident-steps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+
+        @media (max-width: 1024px) {
+            .incident-steps-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .incident-step-card {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 0.75rem 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .step-code-box {
+            margin: 0.15rem 0;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .step-code-box code {
+            background: #fdf2e1;
+            border: 1px solid #f5c278;
+            color: #4a2810;
+            font-weight: 700;
+            padding: 0.22rem 0.55rem;
+            border-radius: 5px;
+            display: inline-block;
+            font-size: 0.78rem;
+        }
+
+        .step-intent-desc {
+            font-size: 0.75rem;
+            color: var(--text-body);
+            line-height: 1.35;
+        }
+
+        .step-tag-num {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        /* Soft Unified Sage Green Tags */
+        .step-tag {
+            background: #e8efe8;
+            color: #2d3a28;
+            border: 1px solid #c2d1b0;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.72rem;
+            white-space: nowrap;
+        }
+        .cmd-node {
+            background: #edf1d8;
+            border: 1px solid #c4cb98;
+            border-radius: 6px;
+            padding: 0.3rem 0.55rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            box-shadow: 0 1px 3px rgba(65, 78, 50, 0.08);
+            position: relative;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .cmd-node:hover {
+            background: #e2e8c2;
+            border-color: #a8b276;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(168, 178, 118, 0.3);
+        }
+        .cmd-node:hover .cmd-label,
+        .cmd-node:hover .cmd-icon {
+            color: #2b3824;
+        }
+        .cmd-icon {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: #36432f;
+            font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .cmd-label {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: #36432f;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <div class="top-nav">
+            <a href="linux_cheatsheet.html" class="back-btn">
+                <span>←</span>
+                <span>Back to Main Flowchart</span>
+            </a>
+            <span class="domain-badge">⚡ CPU & Load Sub-Page</span>
+        </div>
+
+        <h1 class="header-title">CPU & System Load — Deep Dive Reference</h1>
+        <p class="header-subtitle">Diagnose high CPU utilization, runnable process queue length (load average vs CPU core count), and per-core bottleneck saturation.</p>
+
+        <div class="banner-container">
+            <div class="banner-title">
+                <span>⚡</span>
+                <span>Load Average Rule of Thumb</span>
+            </div>
+            <div class="banner-desc">
+                Load Average measures the <strong>number of processes waiting for CPU runtime or disk I/O</strong>. Always divide Load Average by total CPU core count (<code>nproc</code>). If <code>Load / Cores > 1.0</code>, tasks are queuing up!
+            </div>
+              <div class="sub-tabs">
+            <button class="tab-btn active" onclick="switchTab('concepts', this)">🧠 Master Concepts</button>
+            <button class="tab-btn" onclick="switchTab('incidents', this)">🚨 Incident Workflows</button>
+            <button class="tab-btn" onclick="switchTab('detail', this)">📖 All Commands Detail</button>
+        </div>
+
+        <!-- TAB 1: Master Concepts -->
+        <div id="concepts" class="tab-panel active">
+            <div class="cards-grid" style="grid-template-columns: 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+                <div class="cmd-block" style="border-left: 5px solid var(--c-sage-green);">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        ⚡ Concept 1: Load Average Ratio (Load / Cores &gt; 1.0 = Queuing)
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-body);">
+                        Linux load average represents the average number of processes in <strong>Runnable (R)</strong> or <strong>Uninterruptible Disk Sleep (D)</strong> state.<br>
+                        • <strong>Golden Ratio Rule</strong>: Always divide load average numbers (1m, 5m, 15m) by total logical CPU core count (<code>nproc</code>).<br>
+                        • <strong>Thresholds</strong>: <code>0.7 * Cores</code> = Optimal throughput; <code>1.0 * Cores</code> = Fully saturated; <code>&gt; 1.0 * Cores</code> = Tasks are queuing up waiting for CPU execution time or disk I/O completion.
+                    </div>
+                </div>
+
+                <div class="cmd-block" style="border-left: 5px solid var(--c-taupe);">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        📊 Concept 2: CPU % State Decomposition (%us, %sy, %wa, %hi, %si)
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-body);">
+                        When diagnosing CPU spikes, top breakdown fields reveal the bottleneck nature:<br>
+                        • <code>%us</code> (User): User-space code execution (application logic, compute tasks).<br>
+                        • <code>%sy</code> (System): Kernel-space system calls, context switching, memory allocation.<br>
+                        • <code>%wa</code> (I/O Wait): CPU is idle waiting on disk or network storage I/O response.<br>
+                        • <code>%si</code> (Soft IRQ): Network packet processing handling. High <code>%si</code> indicates packet floods.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Debug-Relevant System Paths -->
+            <div class="banner-container" style="background:#f6f8f6; border-color:var(--border-subtle); padding: 1.25rem;">
+                <div class="banner-title" style="font-size: 1.1rem; margin-bottom: 0.85rem;">
+                    📁 System Paths &amp; Kernel Metrics
+                </div>
+                <div class="cards-grid">
+                    <div class="path-card">
+                        <div class="path-header"><span class="path-code">/proc/cpuinfo</span><span class="priority-tag p-high">🔥 High Debug Value</span></div>
+                        <p style="font-size:0.9rem; color:var(--text-body);">Virtual file containing detailed CPU model, core count, cache size, and processor flags.</p>
+                    </div>
+                    <div class="path-card">
+                        <div class="path-header"><span class="path-code">/proc/loadavg</span><span class="priority-tag p-high">🔥 High Debug Value</span></div>
+                        <p style="font-size:0.9rem; color:var(--text-body);">Kernel system load metrics for the last 1, 5, and 15 minutes.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Incident Workflows -->
+        <div id="incidents" class="tab-panel">
+            <div class="incident-flow-card" data-category="cpu">
+                <div class="incident-card-header">
+                    <div class="incident-card-title-group">
+                        <h3 class="incident-card-title">⚡ High CPU Load Spike &amp; Server Lag</h3>
+                    </div>
+                    <div class="incident-card-actions">
+                        <span class="category-badge">CPU &amp; Load</span>
+                    </div>
+                </div>
+
+                <div class="incident-strategy-banner decision-box">
+                    <strong>🎯 Triage Strategy &amp; Intention Logic:</strong>
+                    <div class="step-list">
+                        <span>• <strong>Load Trend vs Capacity:</strong> Compare 1m/5m/15m load average against logical core count (<code>nproc</code>).</span>
+                        <span>• <strong>Classify Bottleneck:</strong> Isolate %us (App code heavy), %sy (Kernel system call overhead), or %wa (Disk I/O wait).</span>
+                    </div>
+                </div>
+
+                <div class="incident-steps-grid">
+                    <!-- Step 1 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 1: Quick Scan</span>
+                            <button class="cmd-node" onclick="openModal('uptime')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">uptime</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>uptime &amp;&amp; nproc</code>
+                        </div>
+                        <div class="step-intent-desc">Compare load average trend to available CPU logical core capacity</div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 2: Pinpoint Type</span>
+                            <button class="cmd-node" onclick="openModal('vmstat')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">vmstat 1 5</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>vmstat 1 5</code>
+                        </div>
+                        <div class="step-intent-desc">Sample CPU metrics to isolate %us (App), %sy (Kernel), or %wa (Disk wait)</div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 3: Top CPU PID</span>
+                            <button class="cmd-node" onclick="openModal('top')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">top</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>top -b -n1 | head -n 15</code>
+                        </div>
+                        <div class="step-intent-desc">Target process list by %CPU to find the top resource-consuming PID</div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 4: Remediation</span>
+                            <button class="cmd-node" onclick="openModal('kill-signals')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">kill -15</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>kill -15 &lt;PID&gt;</code>
+                        </div>
+                        <div class="step-intent-desc">Send SIGTERM (15) for graceful app shutdown or adjust priority with renice</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cards-grid" style="margin-top: 1rem;">
+                <div class="scenario-card">
+                    <h3 style="font-size:1.02rem; font-weight:700; color:var(--text-heading); margin-bottom:0.4rem;">🔥 High %wa (I/O Wait Saturation)</h3>
+                    <p style="font-size:0.9rem; color:var(--text-body);">If <code>top</code> shows low <code>%us</code> (User) but high <code>%wa</code> (&gt;20%), the CPU is idle waiting for slow disk storage. Jump to Disk Storage sub-page!</p>
+                </div>
+                <div class="scenario-card">
+                    <h3 style="font-size:1.02rem; font-weight:700; color:var(--text-heading); margin-bottom:0.4rem;">⚙️ Single-Thread CPU Bottleneck</h3>
+                    <p style="font-size:0.9rem; color:var(--text-body);">Node.js or Python processes run single-threaded loops. Overall host CPU may show 12% on 8 cores, but Core 0 is 100% pinned! Check <code>mpstat -P ALL</code>.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: All Commands Detail -->
+        <div id="detail" class="tab-panel">
+            <h3 style="font-size: 1.15rem; color: var(--text-heading); margin-bottom: 1.2rem;">📖 All CPU &amp; Load Commands (Flat Scannable View)</h3>
+            
+            <!-- top -b -n1 -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> top -b -n1</div>
+                        <div class="cmd-intent">Non-interactive CPU snapshot for logs, scripts, &amp; instant process listing</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ top -b -n1 | head -n 20</span>
+                    <button class="copy-btn" onclick="copyText('top -b -n1 | head -n 20')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">-b</span> <span>Batch mode (non-interactive, suitable for logging)</span></div>
+                        <div class="flag-row"><span class="flag-code">-n 1</span> <span>Number of iterations (exit immediately after 1 refresh)</span></div>
+                    </div>
+                </div>
+                <div class="output-box">%Cpu(s): 85.2 us, 12.1 sy,  0.0 ni,  2.7 id,  0.0 wa,  0.0 hi,  0.0 si
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 4821 spark     20   0 14.2g   8.1g  1.2g R 380.2  26.1  45:12.10 java</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>RULE</strong>: Batch top captures immediate CPU hog PIDs without launching interactive UI overhead.</div>
+                </div>
+            </div>
+
+            <!-- mpstat -P ALL -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> mpstat -P ALL 1 3</div>
+                        <div class="cmd-intent">Per-CPU core utilization breakdown probe</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ mpstat -P ALL 1 3</span>
+                    <button class="copy-btn" onclick="copyText('mpstat -P ALL 1 3')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">CPU    %usr   %sys  %iowait   %idle
+all    25.0    2.5     0.0    72.5
+  0   100.0    0.0     0.0     0.0  &lt;-- Core 0 maxed out!
+  1     0.0    0.0     0.0   100.0</div>
+            </div>
+
+            <!-- ps STAT -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> ps -eo pid,ppid,stat,cmd</div>
+                        <div class="cmd-intent">Inspect process STAT execution states (R/S vs D uninterruptible disk sleep vs Z zombie)</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ ps -eo pid,ppid,stat,cmd | grep -E 'D|Z'</span>
+                    <button class="copy-btn" onclick="copyText('ps -eo pid,ppid,stat,cmd')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Process STAT Code Matrix</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">R / S</span> <span>Running / Interruptible Sleep (normal operating process)</span></div>
+                        <div class="flag-row"><span class="flag-code">D</span> <span><strong>Uninterruptible Sleep</strong> — stuck waiting on disk I/O, NFS mount, or hardware lock</span></div>
+                        <div class="flag-row"><span class="flag-code">Z</span> <span><strong>Zombie</strong> — terminated process whose parent failed to reap exit code with <code>wait()</code></span></div>
+                    </div>
+                </div>
+                <div class="output-box">  PID  PPID STAT CMD
+ 1824  1012 D    [nfs_handler]  &lt;-- Stuck on NFS I/O
+ 2940  1012 Z    [app_worker] &lt;defunct&gt;  &lt;-- Zombie unreaped</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>PROCESS TRIAGE</strong>: <code>D</code> state processes cannot be killed with <code>kill -9</code> because they are asleep inside kernel syscalls; fix the underlying storage or unmount NFS.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">Copied to clipboard!</div>
+    <script>
+        function switchTab(panelId, btnElem) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            if (!btnElem) {
+                btnElem = document.querySelector(`.tab-btn[onclick*="'${panelId}'"]`);
+            }
+            if (btnElem) btnElem.classList.add('active');
+            const target = document.getElementById(panelId);
+            if (target) target.classList.add('active');
+
+            try {
+                if (window.location.hash !== '#' + panelId) {
+                    history.replaceState(null, null, '#' + panelId);
+                }
+                localStorage.setItem('activeSubpageTab', panelId);
+            } catch (e) {}
+        }
+
+        function restoreSubpageTabState() {
+            let panel = 'concepts';
+            const hash = window.location.hash.replace('#', '').toLowerCase();
+            if (['incidents', 'workflows'].includes(hash)) {
+                panel = 'incidents';
+            } else if (['detail', 'commands'].includes(hash)) {
+                panel = 'detail';
+            } else if (['concepts', 'master'].includes(hash)) {
+                panel = 'concepts';
+            } else {
+                try {
+                    const saved = localStorage.getItem('activeSubpageTab');
+                    if (saved) panel = saved;
+                } catch (e) {}
+            }
+            switchTab(panel);
+        }
+
+        document.addEventListener('DOMContentLoaded', restoreSubpageTabState);
+        window.addEventListener('hashchange', restoreSubpageTabState);
+
+        function copyText(str) {
+            navigator.clipboard.writeText(str).then(() => {
+                const toast = document.getElementById('toast');
+                toast.textContent = `Copied "${str}" to clipboard!`;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+        }
+
+        function openModal(cmdId) {
+            const detailTabBtn = document.querySelectorAll('.tab-btn')[2];
+            if (detailTabBtn) switchTab('detail', detailTabBtn);
+        }
+
+        function openChildPage(catKey) {
+            window.location.href = catKey + '.html';
+        }
+    </script>
+</body>
+</html>

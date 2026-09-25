@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Data Engineering Playbook</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="logo-icon">🐧</div>
+                <div>
+                    <h1>Linux Data Engineering Playbook</h1>
+                    <p class="subtitle">Interactive Intention-Driven Syntax Reference</p>
+                </div>
+            </div>
+            
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Search commands, flags, symptoms (e.g. 'disk full', 'free -h', 'port')..." />
+                <kbd class="shortcut">⌘K</kbd>
+            </div>
+        </header>
+
+        <!-- Quick Triage Decision Flow Bar -->
+        <section class="triage-banner">
+            <span class="triage-title">⚡ Quick Triage Paths:</span>
+            <div class="triage-pills">
+                <button class="triage-btn" data-symptom="load">🔴 Server Slow / High Load</button>
+                <button class="triage-btn" data-symptom="memory">🟡 Out of Memory / Crashes</button>
+                <button class="triage-btn" data-symptom="disk">🚨 Disk Full (100%)</button>
+                <button class="triage-btn" data-symptom="network">🌐 Port / Service Unreachable</button>
+                <button class="triage-btn" data-symptom="identity">🆔 Server Identity</button>
+            </div>
+        </section>
+
+        <!-- Main Content View (Master Page) -->
+        <main class="master-grid" id="masterGrid">
+            <!-- Cards will be populated dynamically by JavaScript -->
+        </main>
+
+        <!-- Detail Modal / Slide-over Page -->
+        <div class="modal-overlay" id="modalOverlay">
+            <div class="modal-container">
+                <button class="modal-close" id="modalClose">&times;</button>
+                
+                <div class="modal-header">
+                    <span class="category-badge" id="modalCategory">CPU & Load</span>
+                    <h2 class="modal-title" id="modalCmdName">free -h</h2>
+                    <p class="modal-intent" id="modalIntent">Check available RAM for applications</p>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Flag Breakdown -->
+                    <div class="section-card">
+                        <h3>🔑 Flag & Argument Breakdown</h3>
+                        <div class="flags-grid" id="modalFlags">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Interactive Terminal Simulation -->
+                    <div class="section-card">
+                        <div class="terminal-header">
+                            <div class="terminal-dots">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                            </div>
+                            <span class="terminal-title">Terminal Example Output</span>
+                            <button class="copy-btn" id="copyCmdBtn">📋 Copy Command</button>
+                        </div>
+                        <div class="terminal-window">
+                            <div class="terminal-prompt">$ <span id="modalCmdFull">free -h</span></div>
+                            <pre class="terminal-output" id="modalOutput"></pre>
+                        </div>
+                    </div>
+
+                    <!-- Key Metric & Rule of Thumb -->
+                    <div class="section-card highlight-card">
+                        <h3>🎯 Key Metric to Look For</h3>
+                        <p class="metric-text" id="modalMetric"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identity & Server Context — Sub-Page | Linux Server Triage</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --c-tea-green: #cbe896;
+            --c-sage-green: #aac0aa;
+            --c-warm-sand: #fcdfa6;
+            --c-peach: #f4b886;
+            --c-taupe: #a18276;
+            --c-soft-sage: #e9edc9;
+
+            --bg-canvas: #f6f8f6;
+            --bg-board: #ffffff;
+            --bg-card: #ffffff;
+            --border-subtle: #e1e8e2;
+            
+            --text-heading: #2d2421;
+            --text-body: #3c322e;
+            --text-muted: #7a6b65;
+            
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'Fira Code', monospace;
+            
+            --shadow-card: 0 4px 12px -2px rgba(161, 130, 118, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-body);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            max-width: 1120px;
+            margin: 0 auto;
+            background: var(--bg-board);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 2.25rem;
+            box-shadow: var(--shadow-card);
+        }
+
+        /* Top Nav Header */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: var(--text-heading);
+            font-weight: 600;
+            font-size: 0.9rem;
+            background: var(--bg-canvas);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--c-soft-sage);
+            border-color: var(--c-sage-green);
+            transform: translateX(-2px);
+        }
+
+        .domain-badge {
+            background: #e9edc9;
+            color: #3a5a40;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.35rem 0.85rem;
+            border-radius: 20px;
+            border: 1px solid #aac0aa;
+        }
+
+        .header-title {
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            margin-bottom: 0.35rem;
+        }
+
+        .header-subtitle {
+            color: var(--text-muted);
+            font-size: 0.98rem;
+            margin-bottom: 1.75rem;
+        }
+
+        /* Architecture Banner */
+        .banner-container {
+            background: #f7f9f7;
+            border: 1px solid #aac0aa;
+            border-radius: 14px;
+            padding: 1.35rem 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .banner-title {
+            font-weight: 700;
+            color: var(--text-heading);
+            font-size: 1.08rem;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .banner-desc {
+            font-size: 0.9rem;
+            color: var(--text-body);
+            line-height: 1.5;
+        }
+
+        /* Sub-Tabs Bar */
+        .sub-tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 2px solid var(--border-subtle);
+            margin-bottom: 1.75rem;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 0.75rem 1.25rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-heading);
+            background: var(--bg-canvas);
+            border-radius: 6px 6px 0 0;
+        }
+
+        .tab-btn.active {
+            color: var(--text-heading);
+            border-bottom-color: var(--c-taupe);
+            font-weight: 700;
+        }
+
+        .tab-panel {
+            display: none;
+            flex-direction: column;
+            gap: 1.75rem;
+        }
+
+        .tab-panel.active {
+            display: flex;
+        }
+
+        /* Command Cards */
+        .cmd-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1.35rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+
+        .cmd-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .cmd-title {
+            font-size: 1.12rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+        }
+
+        .cmd-intent {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .code-box {
+            background: #2d2421;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: #f6f8f6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .code-text {
+            color: #cbe896;
+            font-weight: 600;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: #cbe896;
+            color: #2d2421;
+        }
+
+        /* Single Unified Flags Container Box */
+        .flags-box {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .flags-box-header {
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding-bottom: 0.35rem;
+            border-bottom: 1px dashed var(--border-subtle);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .flags-box-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .flag-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--text-body);
+        }
+
+        .flag-code {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--text-heading);
+            background: #ffffff;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-subtle);
+            font-size: 0.8rem;
+            white-space: nowrap;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .output-box {
+            background: #faf8f5;
+            color: #2d2421;
+            border: 1px solid #e1e8e2;
+            font-family: var(--font-mono);
+            font-size: 0.83rem;
+            padding: 0.85rem 1.1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .metric-box {
+            background: #e9edc9;
+            color: #3a5a40;
+            border: 1px solid #aac0aa;
+            border-radius: 8px;
+            padding: 0.65rem 0.95rem;
+            font-size: 0.86rem;
+            font-weight: 500;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        /* Vertical Single-Column Layout for Paths & Scenarios */
+        .cards-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .path-card, .scenario-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .path-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .path-code {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 0.98rem;
+            color: var(--text-heading);
+            background: var(--bg-canvas);
+            padding: 0.2rem 0.5rem;
+            border-radius: 5px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .priority-tag {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.22rem 0.55rem;
+            border-radius: 5px;
+        }
+
+        .p-high { background: #fcdfa6; color: #2d2421; border: 1px solid #f4b886; }
+        .p-sys { background: #e1e8e2; color: #4a3e39; border: 1px solid #aac0aa; }
+
+        #toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--text-heading);
+            color: #ffffff;
+            padding: 0.65rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.25s ease;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Consolidated Incident Flow Card Container */
+        .incident-flow-card {
+            background: #ffffff;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1.1rem 1.35rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            box-shadow: var(--shadow-card);
+            transition: all 0.2s ease;
+            margin-bottom: 1rem;
+        }
+
+        .incident-flow-card:hover {
+            border-color: var(--c-taupe);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .incident-flow-card[data-category="identity"] { border-left: 5px solid var(--c-sage-green); }
+        .incident-flow-card[data-category="cpu"]      { border-left: 5px solid var(--c-peach); }
+        .incident-flow-card[data-category="memory"]   { border-left: 5px solid var(--c-warm-sand); }
+        .incident-flow-card[data-category="disk"]     { border-left: 5px solid var(--c-tea-green); }
+        .incident-flow-card[data-category="network"]  { border-left: 5px solid var(--c-taupe); }
+        .incident-flow-card[data-category="services"] { border-left: 5px solid var(--c-sage-green); }
+
+        .incident-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .incident-card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .incident-card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+
+        .incident-card-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Clean Neutral Strategy Banner */
+        .incident-strategy-banner {
+            background: #f6f8f6;
+            border: 1px solid #e1e8e2;
+            border-radius: 8px;
+            padding: 0.65rem 0.85rem;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .rule-badge {
+            color: #4a3e39;
+            font-weight: 700;
+            font-size: 0.82rem;
+            flex-shrink: 0;
+            margin-right: 0.15rem;
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
+        .incident-steps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+
+        @media (max-width: 1024px) {
+            .incident-steps-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .incident-step-card {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 0.75rem 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .step-code-box {
+            margin: 0.15rem 0;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .step-code-box code {
+            background: #fdf2e1;
+            border: 1px solid #f5c278;
+            color: #4a2810;
+            font-weight: 700;
+            padding: 0.22rem 0.55rem;
+            border-radius: 5px;
+            display: inline-block;
+            font-size: 0.78rem;
+        }
+
+        .step-intent-desc {
+            font-size: 0.75rem;
+            color: var(--text-body);
+            line-height: 1.35;
+        }
+
+        .step-tag-num {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        /* Soft Unified Sage Green Tags */
+        .step-tag {
+            background: #e8efe8;
+            color: #2d3a28;
+            border: 1px solid #c2d1b0;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.72rem;
+            white-space: nowrap;
+        }
+        .cmd-node {
+            background: #edf1d8;
+            border: 1px solid #c4cb98;
+            border-radius: 6px;
+            padding: 0.3rem 0.55rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            box-shadow: 0 1px 3px rgba(65, 78, 50, 0.08);
+            position: relative;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .cmd-node:hover {
+            background: #e2e8c2;
+            border-color: #a8b276;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(168, 178, 118, 0.3);
+        }
+        .cmd-node:hover .cmd-label,
+        .cmd-node:hover .cmd-icon {
+            color: #2b3824;
+        }
+        .cmd-icon {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: #36432f;
+            font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .cmd-label {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: #36432f;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <!-- Top Navigation Bar -->
+        <div class="top-nav">
+            <a href="linux_cheatsheet.html" class="back-btn">
+                <span>←</span>
+                <span>Back to Main Flowchart</span>
+            </a>
+            <span class="domain-badge">🆔 Identity & Context Sub-Page</span>
+        </div>
+
+        <!-- Header -->
+        <h1 class="header-title">Identity & Server Context — Deep Dive Reference</h1>
+        <p class="header-subtitle">Verify user privileges, root elevation, OS distribution, system timezone (UTC/NTP), package managers, and user management.</p>
+
+        <!-- Banner -->
+        <div class="banner-container">
+            <div class="banner-title">
+                <span>🔑</span>
+                <span>Why Identity & Server Context Matters</span>
+            </div>
+            <div class="banner-desc">
+                Before making system changes or executing data pipelines, always verify: <strong>1) Who am I running as?</strong> (root vs app user), <strong>2) What OS & distro is this VM?</strong> (Debian <code>apt</code> vs RHEL <code>dnf</code>), and <strong>3) Is system time synchronized to UTC?</strong> (Drift breaks OAuth tokens & database replication).
+            </div>
+            <!-- Sub-Page Navigation Tabs -->
+        <div class="sub-tabs">
+            <button class="tab-btn active" onclick="switchTab('concepts', this)">🧠 Master Concepts</button>
+            <button class="tab-btn" onclick="switchTab('incidents', this)">🚨 Incident Workflows</button>
+            <button class="tab-btn" onclick="switchTab('detail', this)">📖 All Commands Detail</button>
+        </div>
+
+        <!-- TAB 1: Master Concepts -->
+        <div id="concepts" class="tab-panel active">
+            <!-- Domain Concepts Grid -->
+            <div class="cards-grid" style="grid-template-columns: 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+                <div class="cmd-block" style="border-left: 5px solid var(--c-sage-green);">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        🆔 Concept 1: User Identity, Real vs Effective UIDs & Linux Capabilities
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-body);">
+                        Linux kernel evaluates permissions via UIDs and GIDs. <strong>Real UID (RUID)</strong> identifies who logged into the shell; <strong>Effective UID (EUID)</strong> dictates permission checks for file and socket access.<br>
+                        • <code>whoami</code> &amp; <code>id</code> inspect active RUID/EUID and group memberships.<br>
+                        • <strong>Linux Capabilities</strong> replace coarse root-or-nothing security with fine-grained privileges (e.g. <code>CAP_NET_BIND_SERVICE</code> allows non-root processes to bind to ports &lt; 1024).
+                    </div>
+                </div>
+
+                <div class="cmd-block" style="border-left: 5px solid var(--c-taupe);">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        🔒 Concept 2: POSIX Permissions, Special Bits (SUID, SGID, Sticky Bit)
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-body);">
+                        Standard POSIX permission bits dictate <code>rwx</code> across Owner, Group, and Others.<br>
+                        • <strong>SUID (4755)</strong>: Process executes with file owner's privileges (e.g., <code>/usr/bin/passwd</code>).<br>
+                        • <strong>SGID (2755)</strong>: Files created inside directory inherit group ownership automatically.<br>
+                        • <strong>Sticky Bit (1777)</strong>: Prevents users from deleting or renaming files owned by others in shared directories (e.g., <code>/tmp</code>).
+                    </div>
+                </div>
+
+                <div class="cmd-block" style="border-left: 5px solid var(--c-peach);">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        📦 Concept 3: 3-Layer Package Logistics Architecture
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-body);">
+                        Software installation operates in 3 distinct system layers across Linux distributions:<br>
+                        • <strong>Layer 1 (Index Metadata Sync)</strong>: <code>apt update</code> / <code>yum makecache</code> syncs repository indexes.<br>
+                        • <strong>Layer 2 (Archive Acquisition)</strong>: Download <code>.deb</code> / <code>.rpm</code> payloads and verify GPG signatures.<br>
+                        • <strong>Layer 3 (Extraction &amp; Triggers)</strong>: <code>dpkg -i</code> / <code>rpm -i</code> extracts binaries, updates <code>ldconfig</code> shared libraries, and triggers systemd reload.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Debug-Relevant System Paths -->
+            <div class="banner-container" style="background:#f6f8f6; border-color:var(--border-subtle); padding: 1.25rem; margin-top: 1rem;">
+                <div class="banner-title" style="font-size: 1.1rem; margin-bottom: 0.85rem;">
+                    📁 Debug-Relevant System Paths &amp; Config Files
+                </div>
+                <div class="cards-grid">
+                    <div class="path-card">
+                        <div class="path-header">
+                            <span class="path-code">/etc/os-release</span>
+                            <span class="priority-tag p-high">🔥 High Debug Value</span>
+                        </div>
+                        <p style="font-size:0.9rem; color:var(--text-body);">OS distribution metadata file. Contains ID (ubuntu/debian/centos), VERSION_ID, and PRETTY_NAME.</p>
+                    </div>
+                    <div class="path-card">
+                        <div class="path-header">
+                            <span class="path-code">/etc/apt/sources.list.d/*.sources</span>
+                            <span class="priority-tag p-high">🔥 High Debug Value</span>
+                        </div>
+                        <p style="font-size:0.9rem; color:var(--text-body);">APT package repository source configurations. Defines repository URIs, distribution release suites (e.g. <code>noble</code>), and component aisles (<code>main</code>, <code>universe</code>, <code>multiverse</code>).</p>
+                    </div>
+                    <div class="path-card">
+                        <div class="path-header">
+                            <span class="path-code">/etc/timezone &amp; /etc/localtime</span>
+                            <span class="priority-tag p-high">🔥 High Debug Value</span>
+                        </div>
+                        <p style="font-size:0.9rem; color:var(--text-body);">System timezone configuration files. Links to <code>/usr/share/zoneinfo/UTC</code>.</p>
+                    </div>
+                    <div class="path-card">
+                        <div class="path-header">
+                            <span class="path-code">/etc/sudoers</span>
+                            <span class="priority-tag p-sys">ℹ️ System Reference</span>
+                        </div>
+                        <p style="font-size:0.9rem; color:var(--text-body);">Sudo privileges configuration file. Defines which users can run commands with root privileges via <code>visudo</code>.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Incident Workflows -->
+        <div id="incidents" class="tab-panel">
+            <div class="incident-flow-card" data-category="identity">
+                <div class="incident-card-header">
+                    <div class="incident-card-title-group">
+                        <h3 class="incident-card-title">🆔 Session Privilege, Environment &amp; User Context</h3>
+                    </div>
+                    <div class="incident-card-actions">
+                        <span class="category-badge">Identity &amp; Context</span>
+                    </div>
+                </div>
+
+                <div class="incident-strategy-banner decision-box">
+                    <strong>🎯 Triage Strategy &amp; Intention Logic:</strong>
+                    <div class="step-list">
+                        <span>• <strong>Verify Session &amp; Host Identity:</strong> Confirm current user privilege (root vs non-root), host IP, and Linux distro release.</span>
+                        <span>• <strong>Path &amp; Time Environment:</strong> Resolve true symlink physical disk paths (<code>pwd -P</code>) and verify UTC clock synchronization.</span>
+                    </div>
+                </div>
+
+                <div class="incident-steps-grid">
+                    <!-- Step 1 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 1: Session &amp; IP</span>
+                            <button class="cmd-node" onclick="openModal('whoami')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">whoami</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>whoami &amp;&amp; hostname -I</code>
+                        </div>
+                        <div class="step-intent-desc">Confirm session privilege (root vs user) and assigned host network IP</div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 2: Elevation</span>
+                            <button class="cmd-node" onclick="openModal('sudo-elevate')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">sudo -s</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>sudo -s</code>
+                        </div>
+                        <div class="step-intent-desc">Elevate to root shell while preserving user environment variables ($SPARK_HOME)</div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 3: Distro &amp; PATH</span>
+                            <button class="cmd-node" onclick="openModal('which')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">which</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>which python3 &amp;&amp; cat /etc/os-release</code>
+                        </div>
+                        <div class="step-intent-desc">Identify Linux distribution (Ubuntu vs RHEL) and resolve binary execution path</div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 4: Clock &amp; Pkg Audit</span>
+                            <button class="cmd-node" onclick="openModal('timedatectl')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">timedatectl</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>timedatectl &amp;&amp; dpkg -s &lt;pkg&gt;</code>
+                        </div>
+                        <div class="step-intent-desc">Verify server clock is set to UTC and audit installed package status</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Incident Scenarios -->
+            <div style="margin-top: 1.5rem;">
+                <h3 style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 1rem;">💡 Real Incident Triage Scenarios</h3>
+                <div class="cards-grid">
+                    <div class="scenario-card">
+                        <h3 style="font-size:1.02rem; font-weight:700; color:var(--text-heading); margin-bottom:0.4rem;">🚫 Command Not Found for Sudo User</h3>
+                        <p style="font-size:0.9rem; color:var(--text-body);">If running <code>sudo app_name</code> returns <em>"command not found"</em>, run <code>sudo -i</code> to load root's full <code>$PATH</code> environment variable.</p>
+                    </div>
+                    <div class="scenario-card">
+                        <h3 style="font-size:1.02rem; font-weight:700; color:var(--text-heading); margin-bottom:0.4rem;">⏰ Database Replication Timestamp Mismatch</h3>
+                        <p style="font-size:0.9rem; color:var(--text-body);">If Airflow DAGs or Kafka consumers fail due to timestamp drift across nodes, run <code>sudo timedatectl set-timezone UTC</code> on all VM instances.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: All Commands Detail -->
+        <div id="detail" class="tab-panel">
+            <h3 style="font-size: 1.15rem; color: var(--text-heading); margin-bottom: 1.2rem;">📖 All Identity &amp; Server Context Commands (Flat Scannable View)</h3>
+            
+            <!-- Command 1: whoami -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+PRETTY_NAME="Ubuntu 22.04.3 LTS"</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>DISTRO LOOKUP</strong>: Determines package manager commands (Debian/Ubuntu <code>apt</code> vs RHEL/CentOS <code>dnf/yum</code>).</div>
+                </div>
+            </div>
+
+            <!-- Command 3: pwd -P -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> pwd -P</div>
+                        <div class="cmd-intent">Print absolute physical directory path resolving all symbolic links</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ pwd -P</span>
+                    <button class="copy-btn" onclick="copyText('pwd -P')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">-P</span> <span>Physical path (resolves symlinks)</span></div>
+                        <div class="flag-row"><span class="flag-code">-L</span> <span>Logical path (preserves symlinks)</span></div>
+                    </div>
+                </div>
+                <div class="output-box">/var/data/airflow/dags</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>SYMLINK TRAP</strong>: Avoid editing a symlink folder thinking it's the target location. <code>pwd -P</code> resolves exact physical storage.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel 2: Maintenance & Setup -->
+        <div id="maint" class="tab-panel">
+            <!-- Command 4: sudo elevate -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> sudo -i / sudo -s</div>
+                        <div class="cmd-intent">Elevate session privileges to root interactive shell environment</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ sudo -i</span>
+                    <button class="copy-btn" onclick="copyText('sudo -i')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">-i</span> <span>Simulate root login shell (loads root's <code>.bashrc</code> & <code>$PATH</code>)</span></div>
+                        <div class="flag-row"><span class="flag-code">-s</span> <span>Run shell as root preserving current environment variables</span></div>
+                    </div>
+                </div>
+                <div class="output-box">root@prod-spark-01:~#</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>ROOT ELEVATION</strong>: Always prefer <code>sudo -i</code> when installing system dependencies to ensure complete root environment.</div>
+                </div>
+            </div>
+
+            <!-- Package Architecture Banner Table -->
+            <div class="banner-container" style="background:#faf8f5; border-color:#e2d5c5; padding:1.25rem; margin-bottom:1.5rem;">
+                <div class="banner-title" style="margin-bottom:0.75rem;">
+                    <span>📦</span>
+                    <span>Package Management Architecture: 3-Layer Logistics Matrix</span>
+                </div>
+                <div class="banner-desc" style="margin-bottom:1rem; font-size:0.92rem; color:var(--text-heading);">
+                    Understanding the distinction between repository sources, high-level package managers (logistics), low-level installers, and binary package archives.
+                </div>
+                <table style="width:100%; border-collapse:collapse; font-size:0.88rem; text-align:left; background:var(--bg-main); border-radius:8px; overflow:hidden; border:1px solid var(--border-color);">
+                    <thead>
+                        <tr style="background:var(--bg-card); border-bottom:2px solid var(--border-color);">
+                            <th style="padding:0.6rem 0.8rem;">Layer</th>
+                            <th style="padding:0.6rem 0.8rem;">Tool / File</th>
+                            <th style="padding:0.6rem 0.8rem;">Network / Dep Resolution</th>
+                            <th style="padding:0.6rem 0.8rem;">Primary Duty</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom:1px solid var(--border-color);">
+                            <td style="padding:0.6rem 0.8rem; font-weight:700; color:#2b4c7e;">1. Repo Source</td>
+                            <td style="padding:0.6rem 0.8rem;"><code>sources.list.d/*.sources</code></td>
+                            <td style="padding:0.6rem 0.8rem;">Online HTTP/HTTPS Mirrors</td>
+                            <td style="padding:0.6rem 0.8rem;">Defines <strong>WHERE</strong> to look (Type, URI, Suite, Component e.g. <code>noble main universe</code>)</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid var(--border-color);">
+                            <td style="padding:0.6rem 0.8rem; font-weight:700; color:#3a5a40;">2. Logistics Layer</td>
+                            <td style="padding:0.6rem 0.8rem;"><code>apt</code> / <code>apt-get</code></td>
+                            <td style="padding:0.6rem 0.8rem;">Fetches & Resolves Dependencies</td>
+                            <td style="padding:0.6rem 0.8rem;">High-level package manager. Resolves dependency trees, downloads <code>.deb</code> packages, hands off to <code>dpkg</code></td>
+                        </tr>
+                        <tr style="border-bottom:1px solid var(--border-color);">
+                            <td style="padding:0.6rem 0.8rem; font-weight:700; color:#5c4728;">3. Low-Level Installer</td>
+                            <td style="padding:0.6rem 0.8rem;"><code>dpkg</code></td>
+                            <td style="padding:0.6rem 0.8rem;">❌ No Network / No Dep Fetch</td>
+                            <td style="padding:0.6rem 0.8rem;">Unpacks <code>.deb</code> directly. If deps missing, fails! Fix with <code>apt --fix-broken install</code></td>
+                        </tr>
+                        <tr>
+                            <td style="padding:0.6rem 0.8rem; font-weight:700; color:#b05726;">4. Package Box</td>
+                            <td style="padding:0.6rem 0.8rem;"><code>filename.deb</code></td>
+                            <td style="padding:0.6rem 0.8rem;">Contains Control Metadata List</td>
+                            <td style="padding:0.6rem 0.8rem;">Archive box containing binaries, scripts, and control file listing required dependencies</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Command 5: apt package management -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> sudo apt install ./file.deb & apt --fix-broken install</div>
+                        <div class="cmd-intent">Install packages from online repos or local .deb files with automatic network dependency resolution</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ sudo apt install ./custom-agent.deb || sudo apt --fix-broken install</span>
+                    <button class="copy-btn" onclick="copyText('sudo apt install ./custom-agent.deb')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>APT vs DPKG Golden Rule</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">apt install ./file.deb</span> <span><strong>PRO-TIP</strong>: Installs local .deb BUT fetches missing dependencies over network!</span></div>
+                        <div class="flag-row"><span class="flag-code">dpkg -i file.deb</span> <span>Offline install only. Fails if dependencies are missing from system!</span></div>
+                        <div class="flag-row"><span class="flag-code">apt --fix-broken install</span> <span>Fixes broken dependencies left behind by dpkg failure</span></div>
+                    </div>
+                </div>
+                <div class="output-box">Reading package lists... Done
+Building dependency tree... Done
+Correcting dependencies... Done</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>APT LOGISTICS LAYER</strong>: Always prefer <code>apt install ./file.deb</code> over raw <code>dpkg -i</code> so apt resolves and pulls missing dependency trees automatically.</div>
+                </div>
+            </div>
+
+            <!-- Command 6: dpkg inspection -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> dpkg -s & dpkg -L & dpkg -S /path</div>
+                        <div class="cmd-intent">Low-level local package status inspection, file listing, and ownership reverse-lookup</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ dpkg -s curl && dpkg -S /usr/bin/htop</span>
+                    <button class="copy-btn" onclick="copyText('dpkg -s curl')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>DPKG Query Flag Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">dpkg -s &lt;pkg&gt;</span> <span>Check if package is installed (Status: install ok installed)</span></div>
+                        <div class="flag-row"><span class="flag-code">dpkg -L &lt;pkg&gt;</span> <span>List all binary files and directories installed by package</span></div>
+                        <div class="flag-row"><span class="flag-code">dpkg -S /path/to/file</span> <span>Inverse search — find which installed package owns file path</span></div>
+                    </div>
+                </div>
+                <div class="output-box">dpkg -S /usr/bin/htop
+htop: /usr/bin/htop</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>DPKG INSPECTION LAYER</strong>: <code>dpkg -s</code> before a pipeline run turns 'command not found' into clean empirical evidence of missing packages on slim container images.</div>
+                </div>
+            </div>
+
+            <!-- which vs type -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> which &lt;binary&gt; & type &lt;cmd&gt;</div>
+                        <div class="cmd-intent">Resolve executable binary location in $PATH or identify shell builtins & aliases</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ which python3 && type ll</span>
+                    <button class="copy-btn" onclick="copyText('which python3')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Resolution Matrix</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">which &lt;name&gt;</span> <span>Prints absolute file path of executable binary found in <code>$PATH</code></span></div>
+                        <div class="flag-row"><span class="flag-code">type &lt;name&gt;</span> <span>Identifies whether command is a shell builtin, alias, or external binary</span></div>
+                    </div>
+                </div>
+                <div class="output-box">/usr/bin/python3
+ll is aliased to 'ls -la'</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>$PATH DISCOVERY &amp; VIRTUALENVS</strong>: <code>which</code> checks <code>$PATH</code> directories from left to right. In Data Engineering pipelines, ensure <code>.venv/bin</code> or Conda environment directories appear first in <code>$PATH</code> so virtual environment packages execute instead of system Python!</div>
+                </div>
+            </div>
+
+            <!-- Bash History Shortcuts -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> sudo !! & !$ & Ctrl+R</div>
+                        <div class="cmd-intent">Bash history expansions and instant reverse-search terminal shortcuts</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ sudo !!</span>
+                    <button class="copy-btn" onclick="copyText('sudo !!')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Shortcut Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">sudo !!</span> <span>Re-run previous command with <code>sudo</code> (fixes <em>Permission denied</em> instantly!)</span></div>
+                        <div class="flag-row"><span class="flag-code">!$</span> <span>Insert final argument of previous command (e.g. <code>mkdir /var/data && cd !$</code>)</span></div>
+                        <div class="flag-row"><span class="flag-code">Ctrl + R</span> <span>Interactive reverse-search command history as you type</span></div>
+                    </div>
+                </div>
+                <div class="output-box">sudo systemctl restart nginx
+[sudo] password for ubuntu:</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>TERMINAL SPEED</strong>: <code>sudo !!</code> saves typing long system commands when forgotten root elevation!</div>
+                </div>
+            </div>
+
+            <!-- Bash Prompt Variables (PS1-PS4) -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> export PS1 & PS2 / PS4</div>
+                        <div class="cmd-intent">Customize interactive shell prompts and debug execution trace prefixes</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ export PS1="\u@\h \w> " && export PS4='$0.$LINENO+ '</span>
+                    <button class="copy-btn" onclick="copyText('export PS1=&quot;\\u@\\h \\w&gt; &quot;')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Prompt Variable Matrix</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">PS1</span> <span>Primary interactive shell prompt (e.g. <code>\u@\h \w&gt;</code> displays <code>alice@box ~/work&gt;</code>)</span></div>
+                        <div class="flag-row"><span class="flag-code">PS2</span> <span>Multi-line continuation prompt shown after backslash <code>\</code> (default <code>&gt; </code>)</span></div>
+                        <div class="flag-row"><span class="flag-code">PS3</span> <span>Selection prompt shown before Bash <code>select</code> interactive menus</span></div>
+                        <div class="flag-row"><span class="flag-code">PS4</span> <span>Trace prefix printed before every executed line during <code>set -x</code> debugging (default <code>+</code>)</span></div>
+                        <div class="flag-row"><span class="flag-code">PROMPT_COMMAND</span> <span>Bash command evaluated dynamically right before drawing <code>PS1</code> (e.g. timestamp logging)</span></div>
+                    </div>
+                </div>
+                <div class="output-box"># PS1 Example:
+alice@prod-server-01 ~/work> 
+
+# PS4 Trace Example (set -x):
+./deploy.sh.14+ systemctl restart nginx</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>PROMPT PERSISTENCE</strong>: Add <code>export PS1="..."</code> to <code>~/.bashrc</code> so your customized prompt persists across SSH logins.</div>
+                </div>
+            </div>
+
+            <!-- Command 6: timedatectl -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> timedatectl / timedatectl set-timezone UTC</div>
+                        <div class="cmd-intent">Inspect system clock, time zone settings, and NTP network time sync</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ sudo timedatectl set-timezone UTC</span>
+                    <button class="copy-btn" onclick="copyText('sudo timedatectl set-timezone UTC')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">Local time: Tue 2026-09-22 12:00:00 UTC
+Universal time: Tue 2026-09-22 12:00:00 UTC
+NTP service: active
+System clock synchronized: yes</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>TIME DRIFT WARN</strong>: Server clock out of sync breaks OAuth tokens, TLS certificates, and database replication timestamps.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel 3: System Paths & Configs -->
+        <div id="paths" class="tab-panel">
+            <div class="cards-grid">
+                <div class="path-card">
+                    <div class="path-header">
+                        <span class="path-code">/etc/os-release</span>
+                        <span class="priority-tag p-high">🔥 High Debug Value</span>
+                    </div>
+                    <p style="font-size:0.9rem; color:var(--text-body);">OS distribution metadata file. Contains ID (ubuntu/debian/centos), VERSION_ID, and PRETTY_NAME.</p>
+                </div>
+                <div class="path-card">
+                    <div class="path-header">
+                        <span class="path-code">/etc/apt/sources.list.d/*.sources</span>
+                        <span class="priority-tag p-high">🔥 High Debug Value</span>
+                    </div>
+                    <p style="font-size:0.9rem; color:var(--text-body);">APT package repository source configurations. Defines repository URIs, distribution release suites (e.g. <code>noble</code>), and component aisles (<code>main</code>, <code>universe</code>, <code>multiverse</code>).</p>
+                </div>
+                <div class="path-card">
+                    <div class="path-header">
+                        <span class="path-code">/etc/timezone & /etc/localtime</span>
+                        <span class="priority-tag p-high">🔥 High Debug Value</span>
+                    </div>
+                    <p style="font-size:0.9rem; color:var(--text-body);">System timezone configuration files. Links to <code>/usr/share/zoneinfo/UTC</code>.</p>
+                </div>
+                <div class="path-card">
+                    <div class="path-header">
+                        <span class="path-code">/etc/sudoers</span>
+                        <span class="priority-tag p-sys">ℹ️ System Reference</span>
+                    </div>
+                    <p style="font-size:0.9rem; color:var(--text-body);">Sudo privileges configuration file. Defines which users can run commands with root privileges via <code>visudo</code>.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel 4: Real Incident Scenarios -->
+        <div id="scenarios" class="tab-panel">
+            <div class="cards-grid">
+                <div class="scenario-card">
+                    <h3 style="font-size:1.02rem; font-weight:700; color:var(--text-heading); margin-bottom:0.4rem;">🚫 Command Not Found for Sudo User</h3>
+                    <p style="font-size:0.9rem; color:var(--text-body);">If running <code>sudo app_name</code> returns <em>"command not found"</em>, run <code>sudo -i</code> to load root's full <code>$PATH</code> environment variable.</p>
+                </div>
+                <div class="scenario-card">
+                    <h3 style="font-size:1.02rem; font-weight:700; color:var(--text-heading); margin-bottom:0.4rem;">⏰ Database Replication Timestamp Mismatch</h3>
+                    <p style="font-size:0.9rem; color:var(--text-body);">If Airflow DAGs or Kafka consumers fail due to timestamp drift across nodes, run <code>sudo timedatectl set-timezone UTC</code> on all VM instances.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">Copied to clipboard!</div>
+
+    <script>
+        function switchTab(panelId, btnElem) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            if (!btnElem) {
+                btnElem = document.querySelector(`.tab-btn[onclick*="'${panelId}'"]`);
+            }
+            if (btnElem) btnElem.classList.add('active');
+            const target = document.getElementById(panelId);
+            if (target) target.classList.add('active');
+
+            try {
+                if (window.location.hash !== '#' + panelId) {
+                    history.replaceState(null, null, '#' + panelId);
+                }
+                localStorage.setItem('activeSubpageTab', panelId);
+            } catch (e) {}
+        }
+
+        function restoreSubpageTabState() {
+            let panel = 'concepts';
+            const hash = window.location.hash.replace('#', '').toLowerCase();
+            if (['incidents', 'workflows'].includes(hash)) {
+                panel = 'incidents';
+            } else if (['detail', 'commands'].includes(hash)) {
+                panel = 'detail';
+            } else if (['concepts', 'master'].includes(hash)) {
+                panel = 'concepts';
+            } else {
+                try {
+                    const saved = localStorage.getItem('activeSubpageTab');
+                    if (saved) panel = saved;
+                } catch (e) {}
+            }
+            switchTab(panel);
+        }
+
+        document.addEventListener('DOMContentLoaded', restoreSubpageTabState);
+        window.addEventListener('hashchange', restoreSubpageTabState);
+
+        function copyText(str) {
+            navigator.clipboard.writeText(str).then(() => {
+                const toast = document.getElementById('toast');
+                toast.textContent = `Copied "${str}" to clipboard!`;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+        }
+
+        function openModal(cmdId) {
+            const detailTabBtn = document.querySelectorAll('.tab-btn')[2];
+            if (detailTabBtn) switchTab('detail', detailTabBtn);
+        }
+
+        function openChildPage(catKey) {
+            window.location.href = catKey + '.html';
+        }
+    </script>
+</body>
+</html>

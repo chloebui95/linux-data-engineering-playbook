@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disk Storage & I/O — Sub-Page | Linux Server Triage</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --c-tea-green: #cbe896;
+            --c-sage-green: #aac0aa;
+            --c-warm-sand: #fcdfa6;
+            --c-peach: #f4b886;
+            --c-taupe: #a18276;
+
+            --bg-canvas: #f6f8f6;
+            --bg-board: #ffffff;
+            --bg-card: #ffffff;
+            --border-subtle: #e1e8e2;
+            
+            --text-heading: #2d2421;
+            --text-body: #3c322e;
+            --text-muted: #7a6b65;
+            
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'Fira Code', monospace;
+            
+            --shadow-card: 0 4px 12px -2px rgba(161, 130, 118, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg-canvas); color: var(--text-body); font-family: var(--font-sans); line-height: 1.6; padding: 2rem 1rem; min-height: 100vh; }
+        .page-container { max-width: 1120px; margin: 0 auto; background: var(--bg-board); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 2.25rem; box-shadow: var(--shadow-card); }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); }
+        .back-btn { display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-heading); font-weight: 600; font-size: 0.9rem; background: var(--bg-canvas); padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border-subtle); transition: all 0.2s ease; }
+        .back-btn:hover { background: var(--c-soft-sage); border-color: var(--c-sage-green); transform: translateX(-2px); }
+        .domain-badge { background: #e9edc9; color: #3a5a40; font-size: 0.8rem; font-weight: 700; padding: 0.35rem 0.85rem; border-radius: 20px; border: 1px solid #aac0aa; }
+        .header-title { font-size: 1.85rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.35rem; }
+        .header-subtitle { color: var(--text-muted); font-size: 0.98rem; margin-bottom: 1.75rem; }
+        
+        .banner-container { background: #f7f9f7; border: 1px solid #aac0aa; border-radius: 14px; padding: 1.35rem 1.5rem; margin-bottom: 2rem; }
+        .banner-title { font-weight: 700; color: var(--text-heading); font-size: 1.08rem; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.6rem; }
+        .banner-desc { font-size: 0.9rem; color: var(--text-body); line-height: 1.5; }
+
+        .sub-tabs { display: flex; gap: 0.5rem; border-bottom: 2px solid var(--border-subtle); margin-bottom: 1.75rem; overflow-x: auto; white-space: nowrap; }
+        .tab-btn { background: none; border: none; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); padding: 0.75rem 1.25rem; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s ease; white-space: nowrap; }
+        .tab-btn:hover { color: var(--text-heading); background: var(--bg-canvas); border-radius: 6px 6px 0 0; }
+        .tab-btn.active { color: var(--text-heading); border-bottom-color: var(--c-taupe); font-weight: 700; }
+        .tab-panel { display: none; flex-direction: column; gap: 1.75rem; }
+        .tab-panel.active { display: flex; }
+
+        .cmd-block { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.35rem 1.5rem; display: flex; flex-direction: column; gap: 0.9rem; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .cmd-title { font-size: 1.12rem; font-weight: 700; color: var(--text-heading); display: flex; align-items: center; gap: 0.55rem; }
+        .cmd-icon { color: var(--c-taupe); font-family: var(--font-mono); font-weight: 700; }
+        .cmd-intent { font-size: 0.88rem; color: var(--text-muted); font-weight: 500; }
+        .code-box { background: #2d2421; border-radius: 8px; padding: 0.75rem 1rem; font-family: var(--font-mono); font-size: 0.9rem; color: #f6f8f6; display: flex; justify-content: space-between; align-items: center; }
+        .code-text { color: #cbe896; font-weight: 600; }
+        .copy-btn { background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+        .copy-btn:hover { background: #cbe896; color: #2d2421; }
+
+        .flags-box { background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.75rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .flags-box-header { font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 0.35rem; border-bottom: 1px dashed var(--border-subtle); display: flex; align-items: center; gap: 0.4rem; }
+        .flags-box-body { display: flex; flex-direction: column; gap: 0.45rem; }
+        .flag-row { display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; color: var(--text-body); }
+        .flag-code { font-family: var(--font-mono); font-weight: 700; color: var(--text-heading); background: #ffffff; padding: 0.15rem 0.5rem; border-radius: 4px; border: 1px solid var(--border-subtle); font-size: 0.8rem; white-space: nowrap; min-width: 100px; text-align: center; }
+
+        .output-box { background: #faf8f5; color: #2d2421; border: 1px solid #e1e8e2; font-family: var(--font-mono); font-size: 0.83rem; padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; white-space: pre; }
+        .metric-box { background: #e9edc9; color: #3a5a40; border: 1px solid #aac0aa; border-radius: 8px; padding: 0.65rem 0.95rem; font-size: 0.86rem; font-weight: 500; display: flex; align-items: flex-start; gap: 0.5rem; }
+
+        .cards-grid { display: flex; flex-direction: column; gap: 1rem; }
+        .path-card, .scenario-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.6rem; }
+        .path-header { display: flex; justify-content: space-between; align-items: center; }
+        .path-code { font-family: var(--font-mono); font-weight: 700; font-size: 0.98rem; color: var(--text-heading); background: var(--bg-canvas); padding: 0.2rem 0.5rem; border-radius: 5px; border: 1px solid var(--border-subtle); }
+        .priority-tag { font-size: 0.72rem; font-weight: 700; padding: 0.22rem 0.55rem; border-radius: 5px; }
+        .p-high { background: #fcdfa6; color: #2d2421; border: 1px solid #f4b886; }
+
+        #toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--text-heading); color: #ffffff; padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; font-weight: 500; box-shadow: 0 4px 16px rgba(0,0,0,0.2); opacity: 0; transform: translateY(10px); transition: all 0.25s ease; pointer-events: none; z-index: 1000; }
+        #toast.show { opacity: 1; transform: translateY(0); }
+
+        /* Consolidated Incident Flow Card Container */
+        .incident-flow-card {
+            background: #ffffff;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1.1rem 1.35rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            box-shadow: var(--shadow-card);
+            transition: all 0.2s ease;
+            margin-bottom: 1rem;
+        }
+
+        .incident-flow-card:hover {
+            border-color: var(--c-taupe);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .incident-flow-card[data-category="identity"] { border-left: 5px solid var(--c-sage-green); }
+        .incident-flow-card[data-category="cpu"]      { border-left: 5px solid var(--c-peach); }
+        .incident-flow-card[data-category="memory"]   { border-left: 5px solid var(--c-warm-sand); }
+        .incident-flow-card[data-category="disk"]     { border-left: 5px solid var(--c-tea-green); }
+        .incident-flow-card[data-category="network"]  { border-left: 5px solid var(--c-taupe); }
+        .incident-flow-card[data-category="services"] { border-left: 5px solid var(--c-sage-green); }
+
+        .incident-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .incident-card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .incident-card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+
+        .incident-card-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Clean Neutral Strategy Banner */
+        .incident-strategy-banner {
+            background: #f6f8f6;
+            border: 1px solid #e1e8e2;
+            border-radius: 8px;
+            padding: 0.65rem 0.85rem;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .rule-badge {
+            color: #4a3e39;
+            font-weight: 700;
+            font-size: 0.82rem;
+            flex-shrink: 0;
+            margin-right: 0.15rem;
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
+        .incident-steps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+
+        @media (max-width: 1024px) {
+            .incident-steps-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .incident-step-card {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 0.75rem 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .step-code-box {
+            margin: 0.15rem 0;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .step-code-box code {
+            background: #fdf2e1;
+            border: 1px solid #f5c278;
+            color: #4a2810;
+            font-weight: 700;
+            padding: 0.22rem 0.55rem;
+            border-radius: 5px;
+            display: inline-block;
+            font-size: 0.78rem;
+        }
+
+        .step-intent-desc {
+            font-size: 0.75rem;
+            color: var(--text-body);
+            line-height: 1.35;
+        }
+
+        .step-tag-num {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        /* Soft Unified Sage Green Tags */
+        .step-tag {
+            background: #e8efe8;
+            color: #2d3a28;
+            border: 1px solid #c2d1b0;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.72rem;
+            white-space: nowrap;
+        }
+        .cmd-node {
+            background: #edf1d8;
+            border: 1px solid #c4cb98;
+            border-radius: 6px;
+            padding: 0.3rem 0.55rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            box-shadow: 0 1px 3px rgba(65, 78, 50, 0.08);
+            position: relative;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .cmd-node:hover {
+            background: #e2e8c2;
+            border-color: #a8b276;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(168, 178, 118, 0.3);
+        }
+        .cmd-node:hover .cmd-label,
+        .cmd-node:hover .cmd-icon {
+            color: #2b3824;
+        }
+        .cmd-icon {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: #36432f;
+            font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .cmd-label {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: #36432f;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <div class="top-nav">
+            <a href="linux_cheatsheet.html" class="back-btn">
+                <span>←</span>
+                <span>Back to Main Flowchart</span>
+            </a>
+            <span class="domain-badge">📁 Disk Storage & I/O Sub-Page</span>
+        </div>
+
+        <h1 class="header-title">Disk Storage & I/O — Deep Dive Reference</h1>
+        <p class="header-subtitle">Diagnose full disk partitions, inode limits, directory size hogs, and perform file searching with locate, find, and grep.</p>
+
+        <div class="banner-container">
+            <div class="banner-title">
+                <span>📁</span>
+                <span>The Inode Exhaustion Trap</span>
+            </div>
+            <div class="banner-desc">
+                A disk can report <strong>0 bytes used</strong> but still be 100% FULL if all <strong>inodes</strong> (file metadata slots) are exhausted by millions of tiny log/session files! Always run <code>df -h</code> AND <code>df -i</code>!
+            </div>
+        </div>
+
+        <div class="banner-container" style="background:#faf8f5; border-color:#e2d5c5; padding: 1.25rem 1.5rem;">
+            <div class="banner-title" style="margin-bottom:0.85rem;">
+                <span>🔍</span>
+                <span>File & Text Search Tools Comparison Matrix</span>
+            </div>
+            <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; font-size:0.86rem; text-align:left;">
+                    <thead>
+                        <tr style="background:#eee6dc; border-bottom:2px solid #dcd0c0; color:#2d2421;">
+                            <th style="padding:0.6rem 0.85rem; border-radius:6px 0 0 0;">Tool</th>
+                            <th style="padding:0.6rem 0.85rem;">What It Searches</th>
+                            <th style="padding:0.6rem 0.85rem;">Mechanism & Performance</th>
+                            <th style="padding:0.6rem 0.85rem;">Syntax Example</th>
+                            <th style="padding:0.6rem 0.85rem; border-radius:0 6px 0 0;">Key Rule / Gotcha</th>
+                        </tr>
+                    </thead>
+                    <tbody style="background:#ffffff;">
+                        <tr style="border-bottom:1px solid #e8e0d5;">
+                            <td style="padding:0.65rem 0.85rem; font-weight:700; color:#3a5a40; white-space:nowrap;">⚡ <code>locate</code></td>
+                            <td style="padding:0.65rem 0.85rem;">Filename substring</td>
+                            <td style="padding:0.65rem 0.85rem;">Pre-indexed DB (<code>plocate.db</code>) — <em>Instant</em></td>
+                            <td style="padding:0.65rem 0.85rem;"><code>locate access.log</code></td>
+                            <td style="padding:0.65rem 0.85rem;">New files missing until <code>sudo updatedb</code> runs!</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #e8e0d5;">
+                            <td style="padding:0.65rem 0.85rem; font-weight:700; color:#5c4728; white-space:nowrap;">🐢 <code>find</code></td>
+                            <td style="padding:0.65rem 0.85rem;">File age, size, name, permissions</td>
+                            <td style="padding:0.65rem 0.85rem;">Live disk tree walk — <em>Slow on big disks</em></td>
+                            <td style="padding:0.65rem 0.85rem;"><code>find /var -mtime +7</code></td>
+                            <td style="padding:0.65rem 0.85rem;">Real-time search. Pair with <code>-delete</code> to purge old files.</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #e8e0d5;">
+                            <td style="padding:0.65rem 0.85rem; font-weight:700; color:#b05726; white-space:nowrap;">📄 <code>grep</code> / <code>zgrep</code></td>
+                            <td style="padding:0.65rem 0.85rem;">Text content inside files</td>
+                            <td style="padding:0.65rem 0.85rem;">Reads file contents line-by-line</td>
+                            <td style="padding:0.65rem 0.85rem;"><code>grep -R -i "ERROR" /var/log</code></td>
+                            <td style="padding:0.65rem 0.85rem;">Use <code>zgrep</code> to search compressed <code>.gz</code> archives directly!</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:0.65rem 0.85rem; font-weight:700; color:#2b4c7e; white-space:nowrap;">🧭 <code>which</code></td>
+                            <td style="padding:0.65rem 0.85rem;">Binary executable in <code>$PATH</code></td>
+                            <td style="padding:0.65rem 0.85rem;">Checks <code>$PATH</code> directory list only</td>
+                            <td style="padding:0.65rem 0.85rem;"><code>which python3</code></td>
+                            <td style="padding:0.65rem 0.85rem;">Does NOT search arbitrary disk files—only executable PATH!</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="sub-tabs">
+            <button class="tab-btn active" onclick="switchTab('diag', this)">🚦 Diagnostics & Probes</button>
+            <button class="tab-btn" onclick="switchTab('maint', this)">🛠️ Maintenance & Setup</button>
+            <button class="tab-btn" onclick="switchTab('paths', this)">📁 System Paths & Configs</button>
+            <button class="tab-btn" onclick="switchTab('scenarios', this)">💡 Real Incident Scenarios</button>
+        </div>
+
+        <div id="diag" class="tab-panel active">
+            <!-- df -h -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> df -h & df -i</div>
+                        <div class="cmd-intent">Check filesystem disk space usage & inode index consumption</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ df -h && df -i</span>
+                    <button class="copy-btn" onclick="copyText('df -h && df -i')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">-h</span> <span>Human-readable size format (GB / MB)</span></div>
+                        <div class="flag-row"><span class="flag-code">-i</span> <span>Display inode allocation counts instead of block space</span></div>
+                        <div class="flag-row"><span class="flag-code">-T</span> <span>Display filesystem type (ext4, xfs, overlay)</span></div>
+                    </div>
+                </div>
+                <div class="output-box">Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        100G   98G   2.0G  98% /
+tmpfs             32G  100M    32G   1% /dev/shm</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>CRITICAL ALARM</strong>: If <code>Use% > 95%</code> on <code>/</code> or <code>/var/log</code>, services like Docker or Postgres will crash immediately!</div>
+                </div>
+            </div>
+
+            <!-- du -sh * -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> du -sh * | sort -rh</div>
+                        <div class="cmd-intent">Find top disk-space-consuming directories in current folder</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ du -sh * 2>/dev/null | sort -rh | head -n 10</span>
+                    <button class="copy-btn" onclick="copyText('du -sh * 2>/dev/null | sort -rh | head -n 10')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">-s</span> <span>Summary total for each specified directory</span></div>
+                        <div class="flag-row"><span class="flag-code">-h</span> <span>Human readable size units (GB / MB)</span></div>
+                        <div class="flag-row"><span class="flag-code">sort -rh</span> <span>Reverse numeric sort with human readable unit recognition</span></div>
+                    </div>
+                </div>
+                <div class="output-box">45G    var/
+12G    usr/
+8.5G   home/</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>HOG FINDER</strong>: Quickly isolates which subfolder is consuming multi-gigabytes of storage.</div>
+                </div>
+            </div>
+
+            <!-- iostat -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> iostat -xz 1</div>
+                        <div class="cmd-intent">Monitor storage device I/O throughput, read/write MB/s, and disk utilization (%util)</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ iostat -xz 1 5</span>
+                    <button class="copy-btn" onclick="copyText('iostat -xz 1 5')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">-x</span> <span>Extended statistics (await, svctm, %util)</span></div>
+                        <div class="flag-row"><span class="flag-code">-z</span> <span>Omit inactive devices with zero activity</span></div>
+                    </div>
+                </div>
+                <div class="output-box">Device            r/s     w/s     rMB/s     wMB/s   await  %util
+sda             120.0   450.0      12.5      45.0   18.50  99.8%</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>DISK SATURATION</strong>: <code>%util > 90%</code> means the storage device is at 100% hardware throughput capacity!</div>
+                </div>
+            </div>
+
+            <!-- ps -eo pid,ppid,stat,cmd for Disk I/O -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> ps -eo pid,ppid,stat,cmd (Disk I/O Wait & Deleted File Handles)</div>
+                        <div class="cmd-intent">Find processes stuck in uninterruptible disk wait (STAT=D) or holding unlinked deleted files open</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ ps -eo pid,ppid,stat,cmd | grep ' D '</span>
+                    <button class="copy-btn" onclick="copyText('ps -eo pid,ppid,stat,cmd | grep \' D \'')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Disk Triage Role</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">STAT = D</span> <span><strong>Uninterruptible Sleep</strong> — process stuck waiting on disk write or NFS lock</span></div>
+                        <div class="flag-row"><span class="flag-code">lsof | grep deleted</span> <span>Cross-check PID holding open handle on unlinked file (preventing disk space release)</span></div>
+                    </div>
+                </div>
+                <div class="output-box">  PID  PPID STAT CMD
+ 1820  1012 D    [flush-253:0]  <-- Kernel flushing buffer to slow disk
+ 2410   900 S    java -jar app.jar  <-- Holding 30GB deleted log open!</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>DELETED FILE SPACE TRAP</strong>: If <code>df -h</code> shows 100% full but <code>du -h</code> shows small folders, a running process found via <code>ps</code>/<code>lsof</code> is holding a deleted file handle open. Restarting that PID immediately releases the trapped disk space!</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="maint" class="tab-panel">
+            <!-- lsblk -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> lsblk / blkid</div>
+                        <div class="cmd-intent">List block storage devices, partition tree, mount points, and filesystem UUIDs</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ lsblk -f</span>
+                    <button class="copy-btn" onclick="copyText('lsblk -f')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">NAME   FSTYPE LABEL UUID                                 MOUNTPOINT
+sda                                                              
+├─sda1 ext4         a1b2c3d4-e5f6-7890-1234-56789abcdef0 /
+└─sda2 swap         b2c3d4e5-f6a7-8901-2345-6789abcdef01 [SWAP]</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>UUID LOOKUP</strong>: Resolves exact block UUIDs required for <code>/etc/fstab</code> persistent mount configurations.</div>
+                </div>
+            </div>
+
+            <!-- locate -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> locate &lt;filename&gt;</div>
+                        <div class="cmd-intent">Instant filename substring lookup using pre-built database index</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ locate access.log</span>
+                    <button class="copy-btn" onclick="copyText('locate access.log')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag & Index Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">locate &lt;pattern&gt;</span> <span>Search indexed database (<code>/var/lib/plocate/plocate.db</code>) instantly</span></div>
+                        <div class="flag-row"><span class="flag-code">sudo updatedb</span> <span>Manually force database index refresh to include newly created files</span></div>
+                    </div>
+                </div>
+                <div class="output-box">/var/log/nginx/access.log
+/var/log/nginx/access.log.1
+/var/log/apache2/access.log</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>INDEX RULE</strong>: <code>locate</code> is fast because it reads a DB index, but newly created files won't show up until <code>sudo updatedb</code> runs!</div>
+                </div>
+            </div>
+
+            <!-- find -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> find /path -name "*.log" -mtime +7</div>
+                        <div class="cmd-intent">Live real-time filesystem tree walk filtering by filename, age, or size</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ find /var/log -type f -name "*.log" -mtime +7</span>
+                    <button class="copy-btn" onclick="copyText('find /var/log -type f -name &quot;*.log&quot; -mtime +7')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">-name "pattern"</span> <span>Match filename pattern (case-sensitive; use <code>-iname</code> for case-insensitive)</span></div>
+                        <div class="flag-row"><span class="flag-code">-mtime +7</span> <span>Modified more than 7 days ago (<code>-3</code> = last 3 days)</span></div>
+                        <div class="flag-row"><span class="flag-code">-size +100M</span> <span>Filter files larger than 100 Megabytes</span></div>
+                        <div class="flag-row"><span class="flag-code">-delete</span> <span>Delete matched files (⚠️ Always test search without <code>-delete</code> first!)</span></div>
+                    </div>
+                </div>
+                <div class="output-box">/var/log/app/old_trace_2026-09-01.log
+/var/log/app/old_trace_2026-09-02.log</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>LIVE DISK WALK</strong>: Unlike <code>locate</code>, <code>find</code> walks the live disk tree in real time. Combine with <code>-delete</code> to purge old log clutter.</div>
+                </div>
+            </div>
+
+            <!-- grep & zgrep -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> grep -R -i & zgrep</div>
+                        <div class="cmd-intent">Search text content INSIDE uncompressed and compressed (.gz) files</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ grep -R -i "PermitRootLogin" /etc/ && zgrep -i "OOM" /var/log/syslog.*.gz</span>
+                    <button class="copy-btn" onclick="copyText('grep -R -i &quot;PermitRootLogin&quot; /etc/')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">-R / -r</span> <span>Recursive search through subdirectories (<code>-R</code> follows symlinks)</span></div>
+                        <div class="flag-row"><span class="flag-code">-i</span> <span>Ignore uppercase / lowercase distinctions</span></div>
+                        <div class="flag-row"><span class="flag-code">-n</span> <span>Print line numbers where matches occur</span></div>
+                        <div class="flag-row"><span class="flag-code">zgrep</span> <span>Grep directly inside compressed <code>.gz</code> archives without decompressing first!</span></div>
+                    </div>
+                <div class="output-box">/etc/ssh/sshd_config:32:PermitRootLogin no
+/var/log/syslog.2.gz:Out of memory: Kill process 3412 (java) score 850</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>ZGREP PRO-TIP</strong>: Rotated log files are compressed as <code>.gz</code>. Use <code>zgrep</code> (or <code>zless</code>) to inspect them directly without running <code>gunzip</code>!</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sub-tabs">
+            <button class="tab-btn active" onclick="switchTab('concepts', this)">🧠 Master Concepts</button>
+            <button class="tab-btn" onclick="switchTab('incidents', this)">🚨 Incident Workflows</button>
+            <button class="tab-btn" onclick="switchTab('detail', this)">📖 All Commands Detail</button>
+        </div>
+
+        <!-- TAB 1: Master Concepts -->
+        <div id="concepts" class="tab-panel active">
+            <div class="cards-grid" style="grid-template-columns: 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+                <div class="cmd-block" style="border-left: 5px solid var(--c-sage-green);">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        📁 Concept 1: Inode Exhaustion vs Block Storage Capacity
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-body);">
+                        Linux filesystems allocate separate metadata slots called <strong>Inodes</strong> for every file.<br>
+                        • <strong>The Inode Trap</strong>: A disk with 100GB free space will throw <em>"No space left on device"</em> if 100% of its inodes are consumed by millions of 0-byte micro-logs or session files.<br>
+                        • <strong>Rule</strong>: Always check both <code>df -h</code> (storage blocks) and <code>df -i</code> (inode metadata slots).
+                    </div>
+                </div>
+
+                <div class="cmd-block" style="border-left: 5px solid var(--c-taupe);">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        👻 Concept 2: Deleted Handles &amp; Unlinked Open File Descriptors
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-body);">
+                        Deleting a file with <code>rm</code> unlinks the filename from the directory entry, but disk blocks are NOT freed if a process still holds an open file descriptor (FD)!<br>
+                        • Kernel preserves disk blocks until the process closes the FD or process terminates.<br>
+                        • Use <code>lsof +L1</code> to locate unlinked open files (marked <code>(deleted)</code>) and reclaim space without rebooting.
+                    </div>
+                </div>
+
+                <div class="cmd-block" style="border-left: 5px solid var(--c-peach);">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        🔍 Concept 3: File &amp; Text Search Tool Mechanics Matrix
+                    </div>
+                    <div style="overflow-x:auto; margin-top: 0.5rem;">
+                        <table style="width:100%; border-collapse:collapse; font-size:0.86rem; text-align:left;">
+                            <thead>
+                                <tr style="background:#eee6dc; border-bottom:2px solid #dcd0c0; color:#2d2421;">
+                                    <th style="padding:0.6rem 0.85rem;">Tool</th>
+                                    <th style="padding:0.6rem 0.85rem;">Mechanism</th>
+                                    <th style="padding:0.6rem 0.85rem;">Syntax Example</th>
+                                </tr>
+                            </thead>
+                            <tbody style="background:#ffffff;">
+                                <tr style="border-bottom:1px solid #e8e0d5;">
+                                    <td style="padding:0.5rem 0.85rem; font-weight:700; color:#3a5a40;">⚡ <code>locate</code></td>
+                                    <td style="padding:0.5rem 0.85rem;">Pre-indexed DB lookup (instant)</td>
+                                    <td style="padding:0.5rem 0.85rem;"><code>locate access.log</code></td>
+                                </tr>
+                                <tr style="border-bottom:1px solid #e8e0d5;">
+                                    <td style="padding:0.5rem 0.85rem; font-weight:700; color:#5c4728;">🐢 <code>find</code></td>
+                                    <td style="padding:0.5rem 0.85rem;">Live disk tree walk (slow on large disks)</td>
+                                    <td style="padding:0.5rem 0.85rem;"><code>find /var -mtime +7</code></td>
+                                </tr>
+                                <tr style="border-bottom:1px solid #e8e0d5;">
+                                    <td style="padding:0.5rem 0.85rem; font-weight:700; color:#b05726;">📄 <code>grep</code> / <code>zgrep</code></td>
+                                    <td style="padding:0.5rem 0.85rem;">Line-by-line text content matching</td>
+                                    <td style="padding:0.5rem 0.85rem;"><code>zgrep "ERROR" app.log.2.gz</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                <div class="cmd-block" style="border-left: 5px solid #6b8e23;">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        🔗 Concept 4: Atomic Symlinks (<code>ln -sfn</code>) &amp; <code>stat</code> Metadata
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-body);">
+                        • <strong>Zero-Downtime Atomic Symlink Swaps (<code>ln -sfn</code>)</strong>: Deploying new ML models or dataset pointers safely requires <code>ln -sfn /data/v2 /data/current</code>. The <code>-n</code> (no-dereference) and <code>-f</code> (force) flags ensure the symlink target is updated in 1 atomic OS operation, avoiding broken path references for active readers.<br>
+                        • <strong>File Metadata (<code>stat /path</code>)</strong>: <code>stat</code> inspects exact Inode number, File Descriptor allocation, and timestamp triplets: <strong>Access (atime)</strong>, <strong>Modify (mtime)</strong>, and <strong>Change (ctime)</strong>.
+                    </div>
+                </div>
+            </div>
+
+            <div class="banner-container" style="background:#f6f8f6; border-color:var(--border-subtle); padding: 1.25rem;">
+                <div class="banner-title" style="font-size: 1.1rem; margin-bottom: 0.85rem;">
+                    📁 System Paths &amp; Config Files
+                </div>
+                <div class="cards-grid">
+                    <div class="path-card">
+                        <div class="path-header"><span class="path-code">/var/log</span><span class="priority-tag p-high">🔥 High Debug Value</span></div>
+                        <p style="font-size:0.9rem; color:var(--text-body);">Default directory for system logs (journald, syslog, nginx, postgres). Chief culprit of 100% full disk incidents.</p>
+                    </div>
+                    <div class="path-card">
+                        <div class="path-header"><span class="path-code">/etc/fstab</span><span class="priority-tag p-high">🔥 High Debug Value</span></div>
+                        <p style="font-size:0.9rem; color:var(--text-body);">Static filesystem mount table. Defines drive partitions mounted automatically on boot.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Incident Workflows -->
+        <div id="incidents" class="tab-panel">
+            <div class="incident-flow-card" data-category="disk">
+                <div class="incident-card-header">
+                    <div class="incident-card-title-group">
+                        <h3 class="incident-card-title">📁 Partition 100% Full &amp; Inode Exhaustion</h3>
+                    </div>
+                    <div class="incident-card-actions">
+                        <span class="category-badge">Disk &amp; Storage</span>
+                    </div>
+                </div>
+
+                <div class="incident-strategy-banner decision-box">
+                    <strong>🎯 Triage Strategy &amp; Intention Logic:</strong>
+                    <div class="step-list">
+                        <span>• <strong>Storage vs Inodes:</strong> Isolate block storage exhaustion (<code>df -h</code>) vs file count index exhaustion (<code>df -i</code>).</span>
+                        <span>• <strong>Ghost Handles:</strong> Detect unlinked deleted files held open by running process file descriptors (<code>lsof +L1</code>).</span>
+                    </div>
+                </div>
+
+                <div class="incident-steps-grid">
+                    <!-- Step 1 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 1: Capacity &amp; Inodes</span>
+                            <button class="cmd-node" onclick="openModal('df-h')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">df -h</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>df -h &amp;&amp; df -i</code>
+                        </div>
+                        <div class="step-intent-desc">Differentiate 100% disk block space exhaustion vs 100% inode index exhaustion</div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 2: Top Directories</span>
+                            <button class="cmd-node" onclick="openModal('du-sort')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">du -sh</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>du -ah /var | sort -rh | head -n 15</code>
+                        </div>
+                        <div class="step-intent-desc">Recursively sort directories by total size to identify huge log clutter</div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 3: Ghost Handles</span>
+                            <button class="cmd-node" onclick="openModal('lsof-deleted')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">lsof +L1</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>lsof +L1</code>
+                        </div>
+                        <div class="step-intent-desc">Find unlinked (deleted) files still held open by daemon file descriptors</div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 4: Truncate / Clean</span>
+                            <button class="cmd-node" onclick="openModal('find-exec')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">truncate</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>&gt; /path/to/active.log</code>
+                        </div>
+                        <div class="step-intent-desc">Zero out active log file descriptors without breaking daemon file handles</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cards-grid" style="margin-top: 1rem;">
+                <div class="scenario-card">
+                    <h3 style="font-size:1.02rem; font-weight:700; color:var(--text-heading); margin-bottom:0.4rem;">👻 Deleted File Still Consuming Space (Unlinked Open File)</h3>
+                    <p style="font-size:0.9rem; color:var(--text-body);">If <code>rm large_log.log</code> was run but <code>df -h</code> still shows 100% full, a running process still holds the open file handle! Run <code>lsof +L1</code> to find the PID and restart the service.</p>
+                </div>
+                <div class="scenario-card">
+                    <h3 style="font-size:1.02rem; font-weight:700; color:var(--text-heading); margin-bottom:0.4rem;">💥 100% Inodes Full with 0 Bytes Storage Used</h3>
+                    <p style="font-size:0.9rem; color:var(--text-body);">Millions of micro-session or cache files in <code>/var/spool</code> or <code>/tmp</code> consume all inode index slots. Run <code>df -i</code> to verify, then purge using <code>find /path -type f -delete</code>.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: All Commands Detail -->
+        <div id="detail" class="tab-panel">
+            <h3 style="font-size: 1.15rem; color: var(--text-heading); margin-bottom: 1.2rem;">📖 All Disk Storage &amp; Filesystem Commands (Flat Scannable View)</h3>
+
+            <!-- df -h -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> df -h &amp; df -i</div>
+                        <div class="cmd-intent">Check filesystem disk space usage &amp; inode index consumption</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ df -h &amp;&amp; df -i</span>
+                    <button class="copy-btn" onclick="copyText('df -h &amp;&amp; df -i')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        50G   48G  2.0G  96% /
+/dev/sdb1       100G   20G   80G  20% /data</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>RULE</strong>: Check both block usage (<code>df -h</code>) and inode usage (<code>df -i</code>) during 100% disk full incidents.</div>
+                </div>
+            </div>
+
+            <!-- du -ah -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> du -ah /var/log | sort -rh | head -n 20</div>
+                        <div class="cmd-intent">Sort and pinpoint top space-consuming files and subdirectories</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ du -ah /var/log | sort -rh | head -n 10</span>
+                    <button class="copy-btn" onclick="copyText('du -ah /var/log | sort -rh | head -n 10')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">18G     /var/log/app
+12G     /var/log/app/output.log
+4.2G    /var/log/syslog</div>
+            </div>
+
+            <!-- lsof +L1 -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> lsof +L1</div>
+                        <div class="cmd-intent">Find deleted unlinked files that are still held open by active processes</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ lsof +L1</span>
+                    <button class="copy-btn" onclick="copyText('lsof +L1')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NLINK NODE NAME
+java    14202 root    4w   REG  253,1 15421042     0 1024 /var/log/app.log (deleted)</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>UNLINKED SPACE RECLAIM</strong>: Truncate open descriptor without restarting service: <code>&gt; /proc/14202/fd/4</code>.</div>
+                </div>
+            </div>
+
+            <!-- stat vs lsof -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> stat -c '%a %U:%G' &amp; lsof &lt;path&gt;</div>
+                        <div class="cmd-intent">Inspect file permission rules vs discovering active open file handle holders</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ stat -c '%a %U:%G' /var/log/app.log &amp;&amp; lsof /var/log/app.log</span>
+                    <button class="copy-btn" onclick="copyText('stat -c \'%a %U:%G\' /var/log/app.log')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">640 www-data:adm
+COMMAND  PID     USER   FD   TYPE DEVICE SIZE/OFF   NODE NAME
+nginx   1420 www-data    4w   REG  253,1     4096 104218 /var/log/app.log</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">Copied to clipboard!</div>
+    <script>
+        function switchTab(panelId, btnElem) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            if (!btnElem) {
+                btnElem = document.querySelector(`.tab-btn[onclick*="'${panelId}'"]`);
+            }
+            if (btnElem) btnElem.classList.add('active');
+            const target = document.getElementById(panelId);
+            if (target) target.classList.add('active');
+
+            try {
+                if (window.location.hash !== '#' + panelId) {
+                    history.replaceState(null, null, '#' + panelId);
+                }
+                localStorage.setItem('activeSubpageTab', panelId);
+            } catch (e) {}
+        }
+
+        function restoreSubpageTabState() {
+            let panel = 'concepts';
+            const hash = window.location.hash.replace('#', '').toLowerCase();
+            if (['incidents', 'workflows'].includes(hash)) {
+                panel = 'incidents';
+            } else if (['detail', 'commands'].includes(hash)) {
+                panel = 'detail';
+            } else if (['concepts', 'master'].includes(hash)) {
+                panel = 'concepts';
+            } else {
+                try {
+                    const saved = localStorage.getItem('activeSubpageTab');
+                    if (saved) panel = saved;
+                } catch (e) {}
+            }
+            switchTab(panel);
+        }
+
+        document.addEventListener('DOMContentLoaded', restoreSubpageTabState);
+        window.addEventListener('hashchange', restoreSubpageTabState);
+
+        function copyText(str) {
+            navigator.clipboard.writeText(str).then(() => {
+                const toast = document.getElementById('toast');
+                toast.textContent = `Copied "${str}" to clipboard!`;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+        }
+
+        function openModal(cmdId) {
+            const detailTabBtn = document.querySelectorAll('.tab-btn')[2];
+            if (detailTabBtn) switchTab('detail', detailTabBtn);
+        }
+
+        function openChildPage(catKey) {
+            window.location.href = catKey + '.html';
+        }
+    </script>
+</body>
+</html>

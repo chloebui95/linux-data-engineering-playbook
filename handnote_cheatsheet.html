@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Data Engineering Playbook - Poster Reference</title>
+    <!-- Google Fonts: Inter (UI) and Fira Code (Monospace) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        @page {
+            size: landscape;
+            margin: 8mm;
+        }
+
+        :root {
+            /* Avocado / Sage Green Theme Tokens */
+            --c-tea-green: #cbe896;
+            --c-sage-green: #5b7065;
+            --c-warm-sand: #f8f6f0;
+            --c-soft-sage: #eaf0ec;
+            --c-earth-brown: #36432f;
+            --c-earth-brown-light: #edf1d8;
+            --c-avocado-deep: #2c382e;
+
+            --bg-canvas: #f8f6f0;
+            --bg-card: #ffffff;
+            --bg-subtle: #edf1d8;
+            
+            --border-subtle: #e1e8e2;
+            --border-strong: #36432f;
+            
+            --text-heading: #2c382e;
+            --text-body: #36432f;
+            --text-muted: #5b7065;
+
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --shadow-sm: 0 1px 3px rgba(54, 67, 47, 0.08);
+            --shadow-md: 0 4px 12px rgba(54, 67, 47, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            background-color: var(--bg-canvas);
+            color: var(--text-body);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: clamp(0.85rem, 1.25vh + 0.15vw, 0.98rem);
+            line-height: 1.35;
+            padding: 0.6rem 0.9rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 16:9 Fit-Screen Poster Canvas Container */
+        .poster-container {
+            width: 100%;
+            max-width: 1680px;
+            height: 100%;
+            background: var(--bg-card);
+            border: 2px solid var(--c-earth-brown);
+            border-radius: var(--radius-lg);
+            padding: 0.65rem 0.9rem;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Poster Header Banner */
+        .poster-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--c-earth-brown);
+            padding-bottom: 0.4rem;
+            margin-bottom: 0.45rem;
+            flex-shrink: 0;
+        }
+
+        .poster-header-title {
+            display: flex;
+            align-items: baseline;
+            gap: 0.75rem;
+        }
+
+        .poster-header-title h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(1.25rem, 1.95vh + 0.2vw, 1.6rem);
+            font-weight: 800;
+            color: var(--text-heading);
+            letter-spacing: -0.3px;
+            line-height: 1.1;
+        }
+
+        .poster-header-title p {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(0.85rem, 1.1vh + 0.1vw, 0.96rem);
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        /* 3x3 Grid of 9 Section Cards */
+        .poster-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.55rem;
+            flex: 1;
+            min-height: 0;
+            margin-bottom: 0.35rem;
+        }
+
+        .card-icon {
+            vertical-align: text-bottom;
+            display: inline-block;
+            margin-right: 0.3rem;
+            flex-shrink: 0;
+        }
+
+        .card-node {
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 0.45rem 0.65rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .card-node:hover {
+            border-color: var(--c-earth-brown);
+        }
+
+        .card-body-wrapper {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Unified Card Header Pill Style (No Rainbow Colors) */
+        .card-header-pill {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.25rem 0.6rem;
+            border-radius: var(--radius-sm);
+            background: var(--c-earth-brown-light);
+            border: 1px solid var(--c-sage-green);
+            margin-bottom: 0.35rem;
+            flex-shrink: 0;
+            color: var(--text-heading);
+        }
+
+        .card-header-pill .title {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(0.92rem, 1.3vh + 0.15vw, 1.05rem);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            color: var(--text-heading);
+        }
+
+        .card-header-pill .tag {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.06rem 0.4rem;
+            border-radius: 4px;
+            background: var(--c-tea-green);
+            color: var(--c-earth-brown);
+            border: 1px solid var(--c-earth-brown);
+        }
+
+        /* Bullet List */
+        .item-list {
+            list-style: none;
+            margin-bottom: 0.2rem;
+            padding-left: 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .item-list li {
+            position: relative;
+            padding-left: 0.85rem;
+            margin-bottom: 0.2rem;
+            font-size: clamp(0.82rem, 1.15vh + 0.1vw, 0.92rem);
+            line-height: 1.35;
+            color: var(--text-body);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .item-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0.1rem;
+            color: var(--c-earth-brown);
+            font-size: 1.05rem;
+            line-height: 1;
+            top: -0.05rem;
+            font-weight: bold;
+        }
+
+        /* Monospace Code Formatting */
+        code {
+            font-family: 'Fira Code', monospace;
+            font-size: clamp(0.8rem, 1.1vh + 0.1vw, 0.88rem);
+            background: #f1ede4;
+            color: var(--text-heading);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            padding: 0.02rem 0.28rem;
+            font-weight: 600;
+        }
+
+        .code-box {
+            font-family: 'Fira Code', monospace;
+            font-size: clamp(0.78rem, 1.05vh + 0.1vw, 0.86rem);
+            background: var(--c-earth-brown);
+            color: var(--c-tea-green);
+            border-radius: 6px;
+            padding: 0.35rem 0.55rem;
+            margin: 0.25rem 0;
+            line-height: 1.35;
+            white-space: pre-wrap;
+            word-break: break-all;
+            flex-shrink: 0;
+        }
+
+        .code-box .comment { color: #a1b5a1; }
+        .code-box .cmd { color: #ffffff; font-weight: 700; }
+
+        /* Callout / Safeguard Box */
+        .callout-box {
+            background: var(--c-earth-brown-light);
+            border: 1px solid var(--border-subtle);
+            border-left: 3.5px solid var(--c-earth-brown);
+            border-radius: var(--radius-sm);
+            padding: 0.28rem 0.55rem;
+            margin-top: 0.25rem;
+            font-size: clamp(0.8rem, 1.05vh + 0.1vw, 0.88rem);
+            line-height: 1.35;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            flex-shrink: 0;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-heading);
+        }
+
+        .callout-box strong {
+            font-weight: 700;
+            color: var(--c-earth-brown);
+        }
+
+        /* Poster Footer Banner */
+        .poster-footer {
+            margin-top: 0.3rem;
+            padding-top: 0.3rem;
+            border-top: 1.5px solid var(--c-earth-brown);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .tip-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: var(--c-tea-green);
+            border: 1px solid var(--c-earth-brown);
+            color: var(--c-earth-brown);
+            border-radius: 6px;
+            padding: 0.22rem 0.65rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .footer-brand {
+            font-size: 0.8rem;
+            color: var(--c-sage-green);
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+                background: #ffffff;
+                height: 100vh;
+                overflow: hidden;
+            }
+            .poster-container {
+                height: 100vh;
+                max-width: 100%;
+                border: none;
+                box-shadow: none;
+                padding: 0.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 16:9 Fit-Screen Poster Canvas Container -->
+    <div class="poster-container" id="posterCanvas">
+
+        <!-- Poster Header Banner -->
+        <header class="poster-header">
+            <div class="poster-header-title">
+                <h1>Linux Data Engineering Playbook</h1>
+                <p>Production Systems Reference &amp; Command Matrix</p>
+            </div>
+        </header>
+
+        <!-- 3x3 Grid of 9 Section Cards -->
+        <div class="poster-grid">
+
+            <!-- Card 1: Identity, Users & Permissions (19 commands) -->
+            <div class="card-node">
+                <div class="card-body-wrapper">
+                    <div class="card-header-pill">
+                        <span class="title"><svg class="card-icon" viewBox="0 0 24 24" width="18" height="18" stroke="#36432f" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg> 1. Identity, Users &amp; Permissions</span>
+                        <span class="tag">IDENTITY</span>
+                    </div>
+                    <ul class="item-list">
+                        <li><code>whoami</code> / <code>env</code> / <code>pwd -P</code> ➔ User identity, active env vars &amp; physical path.</li>
+                        <li><code>hostname -I</code> / <code>uname -rm</code> / <code>cat /etc/os-release</code> ➔ Host IP, kernel &amp; OS metadata.</li>
+                        <li><code>type &lt;cmd&gt;</code> / <code>which &lt;bin&gt;</code> / <code>ls -ltra</code> ➔ Binary <code>$PATH</code> lookup &amp; time-sorted list.</li>
+                        <li><code>man</code> / <code>tldr</code> / <code>help</code> ➔ Command manuals &amp; concise usage guides.</li>
+                        <li><code>sudo -i</code> / <code>getcap</code> / <code>setcap</code> ➔ Root elevation &amp; granular binary capabilities.</li>
+                        <li><code>adduser</code> / <code>usermod</code> / <code>last</code> ➔ User creation, group membership &amp; login audit.</li>
+                        <li><code>chmod</code> / <code>chown</code> ➔ Modify file permission bits (<code>755</code>) &amp; user/group ownership.</li>
+                        <li><code>apt</code> / <code>dpkg -s</code> / <code>dpkg -S</code> ➔ Package management, status &amp; file ownership.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Card 2: CPU Capacity & System Load (7 commands) -->
+            <div class="card-node">
+                <div class="card-body-wrapper">
+                    <div class="card-header-pill">
+                        <span class="title"><svg class="card-icon" viewBox="0 0 24 24" width="18" height="18" stroke="#36432f" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"></rect><rect width="6" height="6" x="9" y="9" rx="1"></rect><path d="M15 2v2M15 20v2M2 15h2M2 9h2M20 15h2M20 9h2M9 2v2M9 20v2"></path></svg> 2. CPU Capacity &amp; System Load</span>
+                        <span class="tag">CPU</span>
+                    </div>
+                    <ul class="item-list">
+                        <li><code>uptime</code> ➔ 1, 5, 15 min Load Average (tasks in <code>R</code>+<code>D</code> states).</li>
+                        <li><code>nproc</code> ➔ Print total available logical CPU core count.</li>
+                        <li><code>vmstat 1 5</code> ➔ Monitor run queue (<code>r</code>) &amp; I/O wait (<code>wa</code>) per sec.</li>
+                        <li><code>top</code> ➔ Interactive process CPU &amp; thread monitor.</li>
+                        <li><code>btop / htop</code> ➔ Terminal resource monitor with CPU graph.</li>
+                        <li><code>mpstat</code> ➔ Multi-processor per-core CPU utilization metrics.</li>
+                        <li><code>taskset -c 0,1 &lt;cmd&gt;</code> ➔ Pin process execution to CPU cores.</li>
+                    </ul>
+                </div>
+                <div class="callout-box">
+                    <svg class="card-icon" viewBox="0 0 24 24" width="16" height="16" stroke="#36432f" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>
+                    <div><strong>Load Rule:</strong> If 1-min Load Avg &gt; <code>nproc</code>, tasks queue for CPU!</div>
+                </div>
+            </div>
+
+            <!-- Card 3: Memory, Swap & Kernel (6 commands) -->
+            <div class="card-node">
+                <div class="card-body-wrapper">
+                    <div class="card-header-pill">
+                        <span class="title"><svg class="card-icon" viewBox="0 0 24 24" width="18" height="18" stroke="#36432f" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path></svg> 3. Memory, Swap &amp; Kernel</span>
+                        <span class="tag">MEMORY</span>
+                    </div>
+                    <ul class="item-list">
+                        <li><code>free -h</code> ➔ Compare <code>free</code> RAM vs <code>available</code> RAM.</li>
+                        <li><code>VIRT / RES / SHR</code> ➔ Requested virtual, physical RSS &amp; shared RAM.</li>
+                        <li><code>sysctl vm.swappiness</code> ➔ Adjust disk swap out aggression (0-100).</li>
+                        <li><code>sysctl vm.max_map_count</code> ➔ Max memory map limit for JVM/ES.</li>
+                        <li><code>dmesg -T | grep -i oom</code> ➔ Audit kernel OOM-killer kill events.</li>
+                        <li><code>journalctl -k -e</code> ➔ Inspect kernel boot &amp; memory logs.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Card 4: Disk Storage, Inodes & Mounts (11 commands) -->
+            <div class="card-node">
+                <div class="card-body-wrapper">
+                    <div class="card-header-pill">
+                        <span class="title"><svg class="card-icon" viewBox="0 0 24 24" width="18" height="18" stroke="#36432f" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg> 4. Disk Storage &amp; Inodes</span>
+                        <span class="tag">DISK</span>
+                    </div>
+                    <ul class="item-list">
+                        <li><code>df -h</code> ➔ Human-readable disk space utilization by mount.</li>
+                        <li><code>df -i</code> ➔ Inode utilization count (small file exhaustion trap!).</li>
+                        <li><code>du -sh * | sort -hr</code> ➔ Top storage consumer directories.</li>
+                        <li><code>lsblk</code> ➔ Block storage devices, partitions &amp; mount points.</li>
+                        <li><code>truncate -s 0 file.log</code> ➔ Truncate log size without breaking FD.</li>
+                        <li><code>find /path -name '*.log' -mtime +7</code> ➔ Find files by age/name.</li>
+                        <li><code>locate &lt;file&gt;</code> ➔ Fast indexed path lookup.</li>
+                        <li><code>lsof +L1</code> ➔ Track space locked by unlinked deleted files.</li>
+                        <li><code>stat</code> ➔ Display detailed file/filesystem metadata &amp; inodes.</li>
+                        <li><code>mount / umount</code> ➔ Attach or detach filesystems &amp; storage devices.</li>
+                        <li><code>iostat</code> ➔ Storage device I/O statistics (tps, read/write MB/s).</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Card 5: Process Control & Streams (9 commands) -->
+            <div class="card-node">
+                <div class="card-body-wrapper">
+                    <div class="card-header-pill">
+                        <span class="title"><svg class="card-icon" viewBox="0 0 24 24" width="18" height="18" stroke="#36432f" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg> 5. Process Control &amp; Streams</span>
+                        <span class="tag">PROCESS</span>
+                    </div>
+                    <ul class="item-list">
+                        <li><code>ps -eo pid,ppid,stat,cmd</code> ➔ Snapshot active process state.</li>
+                        <li><code>pgrep -a -f &lt;pattern&gt;</code> ➔ Match PIDs with full command string.</li>
+                        <li><code>pkill -f &lt;pattern&gt;</code> ➔ Send signal to matching processes.</li>
+                        <li><code>SIGTERM (15) / SIGKILL (9)</code> ➔ Exit 143 (graceful) vs 137 (kill).</li>
+                        <li><code>nohup &lt;cmd&gt; &amp; / disown</code> ➔ Detach process from terminal session.</li>
+                        <li><code>ulimit / prlimit</code> ➔ View/set user process limits (e.g. <code>nofile</code>).</li>
+                        <li><code>crontab -e / crontab -l</code> ➔ Edit/list automated cron schedules.</li>
+                        <li><code>FD 0 / 1 / 2</code> ➔ Standard Input (0), Output (1), Error (2).</li>
+                        <li><code>&gt; file 2&gt;&amp;1 &amp; /dev/null</code> ➔ Stream redirection &amp; discard.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Card 6: Network, Sockets & Firewalls (9 commands) -->
+            <div class="card-node">
+                <div class="card-body-wrapper">
+                    <div class="card-header-pill">
+                        <span class="title"><svg class="card-icon" viewBox="0 0 24 24" width="18" height="18" stroke="#36432f" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="16" width="6" height="6" rx="1"></rect><rect x="2" y="16" width="6" height="6" rx="1"></rect><rect x="9" y="2" width="6" height="6" rx="1"></rect><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"></path><path d="M12 12V8"></path></svg> 6. Network, Sockets &amp; Firewalls</span>
+                        <span class="tag">NETWORK</span>
+                    </div>
+                    <ul class="item-list">
+                        <li><code>0.0.0.0 vs 127.0.0.1</code> ➔ Public/all interfaces vs loopback.</li>
+                        <li><code>ss -tulpn</code> ➔ Display active listening TCP/UDP sockets with PID.</li>
+                        <li><code>nc -zv &lt;host&gt; &lt;port&gt;</code> ➔ Test TCP socket reachability probe.</li>
+                        <li><code>curl -I &lt;url&gt;</code> ➔ Fetch HTTP response headers &amp; status codes.</li>
+                        <li><code>nmap -p &lt;port&gt; &lt;host&gt;</code> ➔ Port connectivity &amp; security scanner.</li>
+                        <li><code>getent hosts &lt;name&gt;</code> ➔ Name resolution check (<code>/etc/hosts</code>+DNS).</li>
+                        <li><code>ufw status numbered</code> ➔ Display active firewall rules &amp; status.</li>
+                        <li><code>iptables -L</code> ➔ Inspect low-level netfilter firewall tables.</li>
+                        <li><code>ip addr / ip route</code> ➔ Manage network devices, IPs &amp; routing table.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Card 7: Services, Containers & Logging (5 commands) -->
+            <div class="card-node">
+                <div class="card-body-wrapper">
+                    <div class="card-header-pill">
+                        <span class="title"><svg class="card-icon" viewBox="0 0 24 24" width="18" height="18" stroke="#36432f" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"></path><path d="m22 12.5-8.58 3.91a2 2 0 0 1-1.66 0L3 12.5"></path><path d="m22 17.5-8.58 3.91a2 2 0 0 1-1.66 0L3 17.5"></path></svg> 7. Services &amp; Container Logs</span>
+                        <span class="tag">SERVICES</span>
+                    </div>
+                    <ul class="item-list">
+                        <li><code>systemctl status &lt;service&gt;</code> ➔ Inspect systemd service status.</li>
+                        <li><code>journalctl -u &lt;service&gt; -f</code> ➔ Tail live service logs.</li>
+                        <li><code>podman / docker logs -f</code> ➔ Follow container application logs.</li>
+                        <li><code>cut -d',' -f1,3</code> ➔ Extract specified delimited text columns.</li>
+                        <li><code>tee -a logfile.txt</code> ➔ Write to stdout &amp; file simultaneously.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Card 8: Text ETL & Log Pipelines (10 commands) -->
+            <div class="card-node">
+                <div class="card-body-wrapper">
+                    <div class="card-header-pill">
+                        <span class="title"><svg class="card-icon" viewBox="0 0 24 24" width="18" height="18" stroke="#36432f" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg> 8. Text ETL &amp; Log Pipelines</span>
+                        <span class="tag">LOGS</span>
+                    </div>
+                    <ul class="item-list">
+                        <li><code>grep -R -i "ERR" /log</code> ➔ Recursive case-insensitive search.</li>
+                        <li><code>zgrep "ERR" app.log.gz</code> ➔ Search compressed <code>.gz</code> archives directly.</li>
+                        <li><code>head / cat / wc -l</code> ➔ Inspect file top lines, content &amp; total line count.</li>
+                        <li><code>sort -k2 -nr</code> ➔ Sort lines numerically on col 2 descending.</li>
+                        <li><code>uniq -c</code> ➔ Count consecutive duplicate line occurrences.</li>
+                        <li><code>awk -F',' '$3 &gt; 100'</code> ➔ Field-level pattern scanning &amp; processing.</li>
+                        <li><code>sed 's/old/new/g'</code> ➔ Stream editor string replacement.</li>
+                        <li><code>xargs -n 1 -P 4</code> ➔ Build &amp; execute parallel command lines.</li>
+                        <li><code>lsof -i :port / -p PID</code> ➔ List open files, sockets &amp; process FDs.</li>
+                        <li><code>sysctl -a</code> ➔ Configure runtime kernel parameters dynamically.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Card 9: Packages, Archives & DE Safeguards (4 commands + Safeguards) -->
+            <div class="card-node">
+                <div class="card-body-wrapper">
+                    <div class="card-header-pill">
+                        <span class="title"><svg class="card-icon" viewBox="0 0 24 24" width="18" height="18" stroke="#36432f" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> 9. Archives &amp; DE Safeguards</span>
+                        <span class="tag">SAFEGUARDS</span>
+                    </div>
+                    <ul class="item-list">
+                        <li><code>tar -cvzf / tar -xvf -C</code> ➔ Create &amp; extract gzip archives.</li>
+                        <li><code>zstd -d dataset.tar.zst</code> ➔ High-speed DE compression &amp; decompression.</li>
+                        <li><code>rsync -avz --progress</code> ➔ Efficient differential file sync over network.</li>
+                        <li><code>set -euo pipefail</code> ➔ Fail-fast on errors, unset vars &amp; pipe failures.</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Poster Footer Banner -->
+        <footer class="poster-footer">
+            <div class="footer-brand">
+                Linux Data Engineering Playbook • Production Systems Reference
+            </div>
+        </footer>
+
+    </div>
+
+</body>
+</html>

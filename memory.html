@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory & Swap — Sub-Page | Linux Server Triage</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --c-tea-green: #cbe896;
+            --c-sage-green: #aac0aa;
+            --c-warm-sand: #fcdfa6;
+            --c-peach: #f4b886;
+            --c-taupe: #a18276;
+
+            --bg-canvas: #f6f8f6;
+            --bg-board: #ffffff;
+            --bg-card: #ffffff;
+            --border-subtle: #e1e8e2;
+            
+            --text-heading: #2d2421;
+            --text-body: #3c322e;
+            --text-muted: #7a6b65;
+            
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'Fira Code', monospace;
+            
+            --shadow-card: 0 4px 12px -2px rgba(161, 130, 118, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg-canvas); color: var(--text-body); font-family: var(--font-sans); line-height: 1.6; padding: 2rem 1rem; min-height: 100vh; }
+        .page-container { max-width: 1120px; margin: 0 auto; background: var(--bg-board); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 2.25rem; box-shadow: var(--shadow-card); }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); }
+        .back-btn { display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-heading); font-weight: 600; font-size: 0.9rem; background: var(--bg-canvas); padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border-subtle); transition: all 0.2s ease; }
+        .back-btn:hover { background: #fdf5e6; border-color: var(--c-warm-sand); transform: translateX(-2px); }
+        .domain-badge { background: #faedcd; color: #5c4728; font-size: 0.8rem; font-weight: 700; padding: 0.35rem 0.85rem; border-radius: 20px; border: 1px solid #f4d386; }
+        .header-title { font-size: 1.85rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.35rem; }
+        .header-subtitle { color: var(--text-muted); font-size: 0.98rem; margin-bottom: 1.75rem; }
+        
+        .banner-container { background: #fdfbf7; border: 1px solid #f4d386; border-radius: 14px; padding: 1.35rem 1.5rem; margin-bottom: 2rem; }
+        .banner-title { font-weight: 700; color: var(--text-heading); font-size: 1.08rem; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.6rem; }
+        .banner-desc { font-size: 0.9rem; color: var(--text-body); line-height: 1.5; }
+
+        .sub-tabs { display: flex; gap: 0.5rem; border-bottom: 2px solid var(--border-subtle); margin-bottom: 1.75rem; overflow-x: auto; white-space: nowrap; }
+        .tab-btn { background: none; border: none; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); padding: 0.75rem 1.25rem; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s ease; white-space: nowrap; }
+        .tab-btn:hover { color: var(--text-heading); background: var(--bg-canvas); border-radius: 6px 6px 0 0; }
+        .tab-btn.active { color: var(--text-heading); border-bottom-color: var(--c-taupe); font-weight: 700; }
+        .tab-panel { display: none; flex-direction: column; gap: 1.75rem; }
+        .tab-panel.active { display: flex; }
+
+        .cmd-block { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.35rem 1.5rem; display: flex; flex-direction: column; gap: 0.9rem; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .cmd-title { font-size: 1.12rem; font-weight: 700; color: var(--text-heading); display: flex; align-items: center; gap: 0.55rem; }
+        .cmd-icon { color: var(--c-taupe); font-family: var(--font-mono); font-weight: 700; }
+        .cmd-intent { font-size: 0.88rem; color: var(--text-muted); font-weight: 500; }
+        .code-box { background: #2d2421; border-radius: 8px; padding: 0.75rem 1rem; font-family: var(--font-mono); font-size: 0.9rem; color: #f6f8f6; display: flex; justify-content: space-between; align-items: center; }
+        .code-text { color: #fcdfa6; font-weight: 600; }
+        .copy-btn { background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+        .copy-btn:hover { background: #fcdfa6; color: #2d2421; }
+
+        .flags-box { background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.75rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .flags-box-header { font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 0.35rem; border-bottom: 1px dashed var(--border-subtle); display: flex; align-items: center; gap: 0.4rem; }
+        .flags-box-body { display: flex; flex-direction: column; gap: 0.45rem; }
+        .flag-row { display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; color: var(--text-body); }
+        .flag-code { font-family: var(--font-mono); font-weight: 700; color: var(--text-heading); background: #ffffff; padding: 0.15rem 0.5rem; border-radius: 4px; border: 1px solid var(--border-subtle); font-size: 0.8rem; white-space: nowrap; min-width: 100px; text-align: center; }
+
+        .output-box { background: #faf8f5; color: #2d2421; border: 1px solid #e1e8e2; font-family: var(--font-mono); font-size: 0.83rem; padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; white-space: pre; }
+        .metric-box { background: #faedcd; color: #5c4728; border: 1px solid #f4d386; border-radius: 8px; padding: 0.65rem 0.95rem; font-size: 0.86rem; font-weight: 500; display: flex; align-items: flex-start; gap: 0.5rem; }
+
+        .cards-grid { display: flex; flex-direction: column; gap: 1rem; }
+        .path-card, .scenario-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.6rem; }
+        .path-header { display: flex; justify-content: space-between; align-items: center; }
+        .path-code { font-family: var(--font-mono); font-weight: 700; font-size: 0.98rem; color: var(--text-heading); background: var(--bg-canvas); padding: 0.2rem 0.5rem; border-radius: 5px; border: 1px solid var(--border-subtle); }
+        .priority-tag { font-size: 0.72rem; font-weight: 700; padding: 0.22rem 0.55rem; border-radius: 5px; }
+        .p-high { background: #fcdfa6; color: #2d2421; border: 1px solid #f4b886; }
+
+        #toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--text-heading); color: #ffffff; padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; font-weight: 500; box-shadow: 0 4px 16px rgba(0,0,0,0.2); opacity: 0; transform: translateY(10px); transition: all 0.25s ease; pointer-events: none; z-index: 1000; }
+        #toast.show { opacity: 1; transform: translateY(0); }
+
+        /* Consolidated Incident Flow Card Container */
+        .incident-flow-card {
+            background: #ffffff;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1.1rem 1.35rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            box-shadow: var(--shadow-card);
+            transition: all 0.2s ease;
+            margin-bottom: 1rem;
+        }
+
+        .incident-flow-card:hover {
+            border-color: var(--c-taupe);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .incident-flow-card[data-category="identity"] { border-left: 5px solid var(--c-sage-green); }
+        .incident-flow-card[data-category="cpu"]      { border-left: 5px solid var(--c-peach); }
+        .incident-flow-card[data-category="memory"]   { border-left: 5px solid var(--c-warm-sand); }
+        .incident-flow-card[data-category="disk"]     { border-left: 5px solid var(--c-tea-green); }
+        .incident-flow-card[data-category="network"]  { border-left: 5px solid var(--c-taupe); }
+        .incident-flow-card[data-category="services"] { border-left: 5px solid var(--c-sage-green); }
+
+        .incident-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .incident-card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .incident-card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+
+        .incident-card-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Clean Neutral Strategy Banner */
+        .incident-strategy-banner {
+            background: #f6f8f6;
+            border: 1px solid #e1e8e2;
+            border-radius: 8px;
+            padding: 0.65rem 0.85rem;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .rule-badge {
+            color: #4a3e39;
+            font-weight: 700;
+            font-size: 0.82rem;
+            flex-shrink: 0;
+            margin-right: 0.15rem;
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
+        .incident-steps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+
+        @media (max-width: 1024px) {
+            .incident-steps-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .incident-step-card {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 0.75rem 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .step-code-box {
+            margin: 0.15rem 0;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .step-code-box code {
+            background: #fdf2e1;
+            border: 1px solid #f5c278;
+            color: #4a2810;
+            font-weight: 700;
+            padding: 0.22rem 0.55rem;
+            border-radius: 5px;
+            display: inline-block;
+            font-size: 0.78rem;
+        }
+
+        .step-intent-desc {
+            font-size: 0.75rem;
+            color: var(--text-body);
+            line-height: 1.35;
+        }
+
+        .step-tag-num {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        /* Soft Unified Sage Green Tags */
+        .step-tag {
+            background: #e8efe8;
+            color: #2d3a28;
+            border: 1px solid #c2d1b0;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.72rem;
+            white-space: nowrap;
+        }
+        .cmd-node {
+            background: #edf1d8;
+            border: 1px solid #c4cb98;
+            border-radius: 6px;
+            padding: 0.3rem 0.55rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            box-shadow: 0 1px 3px rgba(65, 78, 50, 0.08);
+            position: relative;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .cmd-node:hover {
+            background: #e2e8c2;
+            border-color: #a8b276;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(168, 178, 118, 0.3);
+        }
+        .cmd-node:hover .cmd-label,
+        .cmd-node:hover .cmd-icon {
+            color: #2b3824;
+        }
+        .cmd-icon {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: #36432f;
+            font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .cmd-label {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: #36432f;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <div class="top-nav">
+            <a href="linux_cheatsheet.html" class="back-btn">
+                <span>←</span>
+                <span>Back to Main Flowchart</span>
+            </a>
+            <span class="domain-badge">🧠 Memory & Swap Sub-Page</span>
+        </div>
+
+        <h1 class="header-title">Memory & Swap — Deep Dive Reference</h1>
+        <p class="header-subtitle">Diagnose RAM exhaustion, Linux Page Cache vs Available Memory, Swap paging activity, and OOM-Killer crash prevention.</p>
+
+        <div class="banner-container">
+            <div class="banner-title">
+                <span>🧠</span>
+                <span>The Linux Memory Myth: Free vs Available</span>
+            </div>
+            <div class="banner-desc">
+                In Linux, low <code>free</code> RAM is normal! The Linux kernel uses unused RAM as <strong>buff/cache</strong> for fast disk I/O. Always look at the <strong><code>available</code> column</strong> — this is the true memory available before OOM thrashing occurs!
+            </div>
+        </div>
+
+        <div class="sub-tabs">
+            <button class="tab-btn active" onclick="switchTab('concepts', this)">🧠 Master Concepts</button>
+            <button class="tab-btn" onclick="switchTab('incidents', this)">🚨 Incident Workflows</button>
+            <button class="tab-btn" onclick="switchTab('detail', this)">📖 All Commands Detail</button>
+        </div>
+
+        <!-- TAB 1: Master Concepts -->
+        <div id="concepts" class="tab-panel active">
+            <div class="cards-grid" style="grid-template-columns: 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+                <div class="cmd-block" style="border-left: 5px solid var(--c-sage-green);">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        🧠 Concept 1: Free vs Available Memory &amp; Page Cache
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-body);">
+                        In Linux, low <code>free</code> memory is normal! Unused RAM is automatically allocated to <strong>buff/cache</strong> (file system page cache) to accelerate file read operations.<br>
+                        • <strong>Rule</strong>: Always check the <strong><code>available</code> column</strong> in <code>free -h</code>. This reflects the true remaining memory that kernel can immediately assign to new processes without swapping.
+                    </div>
+                </div>
+
+                <div class="cmd-block" style="border-left: 5px solid var(--c-taupe);">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        🔄 Concept 2: Memory Paging, Swap Thrashing &amp; Swappiness (0-100)
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-body);">
+                        When physical RAM is depleted, kernel writes inactive pages to swap storage.<br>
+                        • <strong>Swap Thrashing</strong>: Continuous swap-in (<code>si</code>) and swap-out (<code>so</code>) operations severely degrade application performance.<br>
+                        • <code>vm.swappiness=10</code>: Reduces kernel tendency to swap physical pages, preserving RAM for databases (PostgreSQL, Redis) and Spark/JVM runtimes.
+                    </div>
+                </div>
+
+                <div class="cmd-block" style="border-left: 5px solid var(--c-peach);">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        💥 Concept 3: OOM-Killer Architecture &amp; badness Score
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-body);">
+                        When physical RAM and swap are completely exhausted, kernel triggers Out-Of-Memory (OOM) Killer.<br>
+                        • Kernel computes an <code>oom_score</code> for every active process based on memory usage percentage and <code>oom_score_adj</code> tuning.<br>
+                        • Process with highest badness score is sent <code>SIGKILL (137)</code>.
+                    </div>
+                </div>
+            </div>
+
+            <div class="banner-container" style="background:#f6f8f6; border-color:var(--border-subtle); padding: 1.25rem;">
+                <div class="banner-title" style="font-size: 1.1rem; margin-bottom: 0.85rem;">
+                    📁 System Paths &amp; Kernel Metrics
+                </div>
+                <div class="cards-grid">
+                    <div class="path-card">
+                        <div class="path-header"><span class="path-code">/proc/meminfo</span><span class="priority-tag p-high">🔥 High Debug Value</span></div>
+                        <p style="font-size:0.9rem; color:var(--text-body);">Detailed memory breakdown file (MemTotal, MemAvailable, Active, Inactive, Dirty, SwapTotal).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Incident Workflows -->
+        <div id="incidents" class="tab-panel">
+            <div class="incident-flow-card" data-category="memory">
+                <div class="incident-card-header">
+                    <div class="incident-card-title-group">
+                        <h3 class="incident-card-title">🧠 Application OOM Killed / Crash (Exit Code 137)</h3>
+                    </div>
+                    <div class="incident-card-actions">
+                        <span class="category-badge">Memory &amp; Swap</span>
+                    </div>
+                </div>
+
+                <div class="incident-strategy-banner decision-box">
+                    <strong>🎯 Triage Strategy &amp; Intention Logic:</strong>
+                    <div class="step-list">
+                        <span>• <strong>RAM Headroom:</strong> Inspect available memory headroom (ignore <code>free</code>, focus strictly on <code>available</code>).</span>
+                        <span>• <strong>Kernel OOM Trace:</strong> Verify Linux Kernel OOM killer terminations in dmesg (Exit Code 137 / SIGKILL).</span>
+                    </div>
+                </div>
+
+                <div class="incident-steps-grid">
+                    <!-- Step 1 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 1: Memory Scan</span>
+                            <button class="cmd-node" onclick="openModal('free')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">free -h</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>free -h</code>
+                        </div>
+                        <div class="step-intent-desc">Check available RAM headroom and swap usage (ignore free, look at available)</div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 2: Confirm OOM</span>
+                            <button class="cmd-node" onclick="openModal('dmesg-oom')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">dmesg -T</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>dmesg -T | grep -i oom</code>
+                        </div>
+                        <div class="step-intent-desc">Trace kernel ring buffer logs for OOM killer executions (Exit Code 137)</div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 3: Top RSS Consumer</span>
+                            <button class="cmd-node" onclick="openModal('top')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">top (M)</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>ps -eo pid,%mem,rss,cmd --sort=-rss</code>
+                        </div>
+                        <div class="step-intent-desc">Identify the process consuming the highest resident physical memory (RSS)</div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 4: Remediation</span>
+                            <button class="cmd-node" onclick="openModal('kill-signals')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">kill / sysctl</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>sysctl vm.swappiness=10</code>
+                        </div>
+                        <div class="step-intent-desc">Tune swappiness, tune application heap limits, or adjust container cgroup caps</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cards-grid" style="margin-top: 1rem;">
+                <div class="scenario-card">
+                    <h3 style="font-size:1.02rem; font-weight:700; color:var(--text-heading); margin-bottom:0.4rem;">💥 OOM-Killer Terminated Process</h3>
+                    <p style="font-size:0.9rem; color:var(--text-body);">When available RAM reaches 0, kernel OOM-Killer kills the highest memory consumer. Check <code>dmesg -T | grep -i oom</code> to find the killed process.</p>
+                </div>
+                <div class="scenario-card">
+                    <h3 style="font-size:1.02rem; font-weight:700; color:var(--text-heading); margin-bottom:0.4rem;">🐌 High Swap Thrashing Latency</h3>
+                    <p style="font-size:0.9rem; color:var(--text-body);">If <code>vmstat 1</code> shows high <code>si</code>/<code>so</code> values, server is thrashing swap on disk. Set <code>sysctl vm.swappiness=10</code> or add physical RAM.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: All Commands Detail -->
+        <div id="detail" class="tab-panel">
+            <h3 style="font-size: 1.15rem; color: var(--text-heading); margin-bottom: 1.2rem;">📖 All Memory &amp; Swap Commands (Flat Scannable View)</h3>
+
+            <!-- free -h -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> free -h</div>
+                        <div class="cmd-intent">Display total, used, free, buff/cache, and available RAM &amp; Swap</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ free -h</span>
+                    <button class="copy-btn" onclick="copyText('free -h')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">-h</span> <span>Human readable output (GB / MB instead of raw bytes)</span></div>
+                        <div class="flag-row"><span class="flag-code">-w</span> <span>Wide mode (separates buffers and cache into distinct columns)</span></div>
+                    </div>
+                </div>
+                <div class="output-box">               total        used        free      shared  buff/cache   available
+Mem:            62Gi        48Gi       1.2Gi       250Mi       12.8Gi       12.1Gi
+Swap:          2.0Gi       1.5Gi       500Mi</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>CRITICAL COLUMNS</strong>: <code>available</code> = 12.1Gi (RAM remaining for new JVM/Spark processes). <code>buff/cache</code> = Reclaimable OS page cache.</div>
+                </div>
+            </div>
+
+            <!-- vmstat 1 5 -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> vmstat 1 5</div>
+                        <div class="cmd-intent">Monitor real-time virtual memory, swap paging (si/so), and context switches</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ vmstat 1 5</span>
+                    <button class="copy-btn" onclick="copyText('vmstat 1 5')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">1 5</span> <span>Interval 1 second, repeat 5 times</span></div>
+                    </div>
+                </div>
+                <div class="output-box">procs -----------memory---------- ---swap-- -----io--- -system-- ------cpu-----
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+ 2  0 1572864 1258296 25012 13421772 45  120   300   500 1200 4500 80 10  5  5  0</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>SWAP PAGING TRAP</strong>: If <code>si</code> (swap-in) &amp; <code>so</code> (swap-out) are &gt; 0 continuously, the server is swapping memory to disk, causing massive latency!</div>
+                </div>
+            </div>
+
+            <!-- swappiness -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> sysctl vm.swappiness=10</div>
+                        <div class="cmd-intent">Adjust kernel swappiness tendency (0-100) to keep DB/Spark in RAM</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ sudo sysctl vm.swappiness=10</span>
+                    <button class="copy-btn" onclick="copyText('sudo sysctl vm.swappiness=10')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">vm.swappiness = 10</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>RECOMMENDED VALUE</strong>: Set <code>vm.swappiness=10</code> on PostgreSQL/Spark nodes to avoid unnecessary disk swapping.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">Copied to clipboard!</div>
+    <script>
+        function switchTab(panelId, btnElem) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            if (!btnElem) {
+                btnElem = document.querySelector(`.tab-btn[onclick*="'${panelId}'"]`);
+            }
+            if (btnElem) btnElem.classList.add('active');
+            const target = document.getElementById(panelId);
+            if (target) target.classList.add('active');
+
+            try {
+                if (window.location.hash !== '#' + panelId) {
+                    history.replaceState(null, null, '#' + panelId);
+                }
+                localStorage.setItem('activeSubpageTab', panelId);
+            } catch (e) {}
+        }
+
+        function restoreSubpageTabState() {
+            let panel = 'concepts';
+            const hash = window.location.hash.replace('#', '').toLowerCase();
+            if (['incidents', 'workflows'].includes(hash)) {
+                panel = 'incidents';
+            } else if (['detail', 'commands'].includes(hash)) {
+                panel = 'detail';
+            } else if (['concepts', 'master'].includes(hash)) {
+                panel = 'concepts';
+            } else {
+                try {
+                    const saved = localStorage.getItem('activeSubpageTab');
+                    if (saved) panel = saved;
+                } catch (e) {}
+            }
+            switchTab(panel);
+        }
+
+        document.addEventListener('DOMContentLoaded', restoreSubpageTabState);
+        window.addEventListener('hashchange', restoreSubpageTabState);
+
+        function copyText(str) {
+            navigator.clipboard.writeText(str).then(() => {
+                const toast = document.getElementById('toast');
+                toast.textContent = `Copied "${str}" to clipboard!`;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+        }
+
+        function openModal(cmdId) {
+            const detailTabBtn = document.querySelectorAll('.tab-btn')[2];
+            if (detailTabBtn) switchTab('detail', detailTabBtn);
+        }
+
+        function openChildPage(catKey) {
+            window.location.href = catKey + '.html';
+        }
+    </script>
+</body>
+</html>

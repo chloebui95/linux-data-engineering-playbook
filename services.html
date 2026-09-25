@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services & Logs — Sub-Page | Linux Server Triage</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --c-tea-green: #cbe896;
+            --c-sage-green: #aac0aa;
+            --c-warm-sand: #fcdfa6;
+            --c-peach: #f4b886;
+            --c-taupe: #a18276;
+
+            --bg-canvas: #f6f8f6;
+            --bg-board: #ffffff;
+            --bg-card: #ffffff;
+            --border-subtle: #e1e8e2;
+            
+            --text-heading: #2d2421;
+            --text-body: #3c322e;
+            --text-muted: #7a6b65;
+            
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'Fira Code', monospace;
+            
+            --shadow-card: 0 4px 12px -2px rgba(161, 130, 118, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg-canvas); color: var(--text-body); font-family: var(--font-sans); line-height: 1.6; padding: 2rem 1rem; min-height: 100vh; }
+        .page-container { max-width: 1120px; margin: 0 auto; background: var(--bg-board); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 2.25rem; box-shadow: var(--shadow-card); }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); }
+        .back-btn { display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-heading); font-weight: 600; font-size: 0.9rem; background: var(--bg-canvas); padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border-subtle); transition: all 0.2s ease; }
+        .back-btn:hover { background: var(--c-soft-sage); border-color: var(--c-sage-green); transform: translateX(-2px); }
+        .domain-badge { background: #e9edc9; color: #3a5a40; font-size: 0.8rem; font-weight: 700; padding: 0.35rem 0.85rem; border-radius: 20px; border: 1px solid #aac0aa; }
+        .header-title { font-size: 1.85rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.35rem; }
+        .header-subtitle { color: var(--text-muted); font-size: 0.98rem; margin-bottom: 1.75rem; }
+        
+        .banner-container { background: #f7f9f7; border: 1px solid #aac0aa; border-radius: 14px; padding: 1.35rem 1.5rem; margin-bottom: 2rem; }
+        .banner-title { font-weight: 700; color: var(--text-heading); font-size: 1.08rem; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.6rem; }
+        .banner-desc { font-size: 0.9rem; color: var(--text-body); line-height: 1.5; }
+
+        .sub-tabs { display: flex; gap: 0.5rem; border-bottom: 2px solid var(--border-subtle); margin-bottom: 1.75rem; overflow-x: auto; white-space: nowrap; }
+        .tab-btn { background: none; border: none; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); padding: 0.75rem 1.25rem; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s ease; white-space: nowrap; }
+        .tab-btn:hover { color: var(--text-heading); background: var(--bg-canvas); border-radius: 6px 6px 0 0; }
+        .tab-btn.active { color: var(--text-heading); border-bottom-color: var(--c-taupe); font-weight: 700; }
+        .tab-panel { display: none; flex-direction: column; gap: 1.75rem; }
+        .tab-panel.active { display: flex; }
+
+        .cmd-block { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.35rem 1.5rem; display: flex; flex-direction: column; gap: 0.9rem; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .cmd-title { font-size: 1.12rem; font-weight: 700; color: var(--text-heading); display: flex; align-items: center; gap: 0.55rem; }
+        .cmd-icon { color: var(--c-taupe); font-family: var(--font-mono); font-weight: 700; }
+        .cmd-intent { font-size: 0.88rem; color: var(--text-muted); font-weight: 500; }
+        .code-box { background: #2d2421; border-radius: 8px; padding: 0.75rem 1rem; font-family: var(--font-mono); font-size: 0.9rem; color: #f6f8f6; display: flex; justify-content: space-between; align-items: center; }
+        .code-text { color: #cbe896; font-weight: 600; }
+        .copy-btn { background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+        .copy-btn:hover { background: #cbe896; color: #2d2421; }
+
+        .flags-box { background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.75rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .flags-box-header { font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 0.35rem; border-bottom: 1px dashed var(--border-subtle); display: flex; align-items: center; gap: 0.4rem; }
+        .flags-box-body { display: flex; flex-direction: column; gap: 0.45rem; }
+        .flag-row { display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; color: var(--text-body); }
+        .flag-code { font-family: var(--font-mono); font-weight: 700; color: var(--text-heading); background: #ffffff; padding: 0.15rem 0.5rem; border-radius: 4px; border: 1px solid var(--border-subtle); font-size: 0.8rem; white-space: nowrap; min-width: 100px; text-align: center; }
+
+        .output-box { background: #faf8f5; color: #2d2421; border: 1px solid #e1e8e2; font-family: var(--font-mono); font-size: 0.83rem; padding: 0.85rem 1.1rem; border-radius: 8px; overflow-x: auto; white-space: pre; }
+        .metric-box { background: #e9edc9; color: #3a5a40; border: 1px solid #aac0aa; border-radius: 8px; padding: 0.65rem 0.95rem; font-size: 0.86rem; font-weight: 500; display: flex; align-items: flex-start; gap: 0.5rem; }
+
+        .cards-grid { display: flex; flex-direction: column; gap: 1rem; }
+        .path-card, .scenario-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.6rem; }
+        .path-header { display: flex; justify-content: space-between; align-items: center; }
+        .path-code { font-family: var(--font-mono); font-weight: 700; font-size: 0.98rem; color: var(--text-heading); background: var(--bg-canvas); padding: 0.2rem 0.5rem; border-radius: 5px; border: 1px solid var(--border-subtle); }
+        .priority-tag { font-size: 0.72rem; font-weight: 700; padding: 0.22rem 0.55rem; border-radius: 5px; }
+        .p-high { background: #fcdfa6; color: #2d2421; border: 1px solid #f4b886; }
+
+        #toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--text-heading); color: #ffffff; padding: 0.65rem 1.25rem; border-radius: 8px; font-size: 0.88rem; font-weight: 500; box-shadow: 0 4px 16px rgba(0,0,0,0.2); opacity: 0; transform: translateY(10px); transition: all 0.25s ease; pointer-events: none; z-index: 1000; }
+        #toast.show { opacity: 1; transform: translateY(0); }
+
+        /* Consolidated Incident Flow Card Container */
+        .incident-flow-card {
+            background: #ffffff;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1.1rem 1.35rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            box-shadow: var(--shadow-card);
+            transition: all 0.2s ease;
+            margin-bottom: 1rem;
+        }
+
+        .incident-flow-card:hover {
+            border-color: var(--c-taupe);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .incident-flow-card[data-category="identity"] { border-left: 5px solid var(--c-sage-green); }
+        .incident-flow-card[data-category="cpu"]      { border-left: 5px solid var(--c-peach); }
+        .incident-flow-card[data-category="memory"]   { border-left: 5px solid var(--c-warm-sand); }
+        .incident-flow-card[data-category="disk"]     { border-left: 5px solid var(--c-tea-green); }
+        .incident-flow-card[data-category="network"]  { border-left: 5px solid var(--c-taupe); }
+        .incident-flow-card[data-category="services"] { border-left: 5px solid var(--c-sage-green); }
+
+        .incident-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .incident-card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .incident-card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+
+        .incident-card-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Clean Neutral Strategy Banner */
+        .incident-strategy-banner {
+            background: #f6f8f6;
+            border: 1px solid #e1e8e2;
+            border-radius: 8px;
+            padding: 0.65rem 0.85rem;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .rule-badge {
+            color: #4a3e39;
+            font-weight: 700;
+            font-size: 0.82rem;
+            flex-shrink: 0;
+            margin-right: 0.15rem;
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
+        .incident-steps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+
+        @media (max-width: 1024px) {
+            .incident-steps-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .incident-step-card {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 0.75rem 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .step-code-box {
+            margin: 0.15rem 0;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .step-code-box code {
+            background: #fdf2e1;
+            border: 1px solid #f5c278;
+            color: #4a2810;
+            font-weight: 700;
+            padding: 0.22rem 0.55rem;
+            border-radius: 5px;
+            display: inline-block;
+            font-size: 0.78rem;
+        }
+
+        .step-intent-desc {
+            font-size: 0.75rem;
+            color: var(--text-body);
+            line-height: 1.35;
+        }
+
+        .step-tag-num {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        /* Soft Unified Sage Green Tags */
+        .step-tag {
+            background: #e8efe8;
+            color: #2d3a28;
+            border: 1px solid #c2d1b0;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.72rem;
+            white-space: nowrap;
+        }
+        .cmd-node {
+            background: #edf1d8;
+            border: 1px solid #c4cb98;
+            border-radius: 6px;
+            padding: 0.3rem 0.55rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            box-shadow: 0 1px 3px rgba(65, 78, 50, 0.08);
+            position: relative;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .cmd-node:hover {
+            background: #e2e8c2;
+            border-color: #a8b276;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(168, 178, 118, 0.3);
+        }
+        .cmd-node:hover .cmd-label,
+        .cmd-node:hover .cmd-icon {
+            color: #2b3824;
+        }
+        .cmd-icon {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: #36432f;
+            font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .cmd-label {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: #36432f;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <div class="top-nav">
+            <a href="linux_cheatsheet.html" class="back-btn">
+                <span>←</span>
+                <span>Back to Main Flowchart</span>
+            </a>
+            <span class="domain-badge">⚙️ Services & Logs Sub-Page</span>
+        </div>
+
+        <h1 class="header-title">Services & Logs — Deep Dive Reference</h1>
+        <p class="header-subtitle">Master real-time log streaming, systemd service lifecycle management, job scheduling (cron, at & timers), and process termination control.</p>
+
+        <div class="banner-container">
+            <div class="banner-title">
+                <span>⚙️</span>
+                <span>Signal Hygiene: SIGTERM (15) vs SIGKILL (9)</span>
+            </div>
+            <div class="banner-desc">
+                Always attempt <code>kill -15 &lt;pid&gt;</code> (SIGTERM) first! It allows applications to flush database buffers and release locks cleanly. Use <code>kill -9</code> (SIGKILL) ONLY as an emergency un-catchable last resort!
+            </div>
+        </div>
+
+        <div class="banner-container" style="background:#faf8f5; border-color:#e2d5c5;">
+            <div class="banner-title">
+                <span>⏰</span>
+                <span>Job Scheduling Architecture: at vs cron vs systemd timer</span>
+            </div>
+            <div class="banner-desc">
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:0.85rem; margin-top:0.6rem;">
+                    <div style="background:#ffffff; padding:0.85rem 1rem; border-radius:8px; border:1px solid #e1e8e2;">
+                        <div style="font-weight:700; color:#2d2421; margin-bottom:0.25rem;">📌 <code>at</code> (One-Shot Task)</div>
+                        <div style="font-size:0.84rem; color:#5c4728;">Runs a command <strong>ONCE</strong> at a future clock time (e.g. <code>at now + 5 minutes</code>). Queued & executed via <code>atd</code> daemon.</div>
+                    </div>
+                    <div style="background:#ffffff; padding:0.85rem 1rem; border-radius:8px; border:1px solid #e1e8e2;">
+                        <div style="font-weight:700; color:#2d2421; margin-bottom:0.25rem;">🔁 <code>cron</code> / <code>crontab</code> (Repeating Calendar)</div>
+                        <div style="font-size:0.84rem; color:#3a5a40;">Runs commands on a <strong>REPEATING</strong> calendar pattern (e.g. <code>0 5 * * *</code> daily). Managed per user via <code>crontab -e</code>.</div>
+                    </div>
+                    <div style="background:#ffffff; padding:0.85rem 1rem; border-radius:8px; border:1px solid #e1e8e2;">
+                        <div style="font-weight:700; color:#2d2421; margin-bottom:0.25rem;">⏱️ <code>systemd timer</code> (OS Service Unit)</div>
+                        <div style="font-size:0.84rem; color:#b05726;">Triggers an OS-level <code>.service</code> unit on a schedule (<code>systemctl list-timers</code>). Available on cloud VMs (systemd PID 1).</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sub-tabs">
+            <button class="tab-btn active" onclick="switchTab('diag', this)">🚦 Diagnostics & Probes</button>
+            <button class="tab-btn" onclick="switchTab('maint', this)">🛠️ Maintenance & Setup</button>
+            <button class="tab-btn" onclick="switchTab('paths', this)">📁 System Paths & Configs</button>
+            <button class="tab-btn" onclick="switchTab('scenarios', this)">💡 Real Incident Scenarios</button>
+        </div>
+
+        <div id="diag" class="tab-panel active">
+            <!-- journalctl -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> journalctl -u &lt;service&gt; -f</div>
+                        <div class="cmd-intent">Tail live systemd binary logs for specific daemon service</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ journalctl -u nginx -f --no-pager</span>
+                    <button class="copy-btn" onclick="copyText('journalctl -u nginx -f --no-pager')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">-u &lt;unit&gt;</span> <span>Filter logs by specific systemd service unit name</span></div>
+                        <div class="flag-row"><span class="flag-code">-f</span> <span>Follow log stream in real-time (like tail -f)</span></div>
+                        <div class="flag-row"><span class="flag-code">-n 100</span> <span>Show last 100 lines before tailing live log stream</span></div>
+                        <div class="flag-row"><span class="flag-code">--since "1 hour ago"</span> <span>Filter log entries by relative time window</span></div>
+                    </div>
+                </div>
+                <div class="output-box">Sep 22 12:00:01 prod-vm nginx[1045]: 2026/09/22 12:00:01 [error] 1045#1045: *120 connect() failed (111: Connection refused) while connecting to upstream</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>PRO TIP</strong>: Add <code>--no-pager</code> when running in automation or piped scripts to avoid interactive less paging.</div>
+                </div>
+            </div>
+
+            <!-- podman / docker logs -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> podman logs / docker logs</div>
+                        <div class="cmd-intent">Stream stdout & stderr container application log outputs</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ podman logs -f --tail 50 spark-worker</span>
+                    <button class="copy-btn" onclick="copyText('podman logs -f --tail 50 spark-worker')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">-f</span> <span>Follow log output dynamically in real-time</span></div>
+                        <div class="flag-row"><span class="flag-code">--tail 50</span> <span>Display last 50 lines of container output</span></div>
+                        <div class="flag-row"><span class="flag-code">-t</span> <span>Include timestamps with log entries</span></div>
+                    </div>
+                </div>
+                <div class="output-box">2026-09-22T12:00:05.123Z INFO Worker: Started daemon process on port 8081</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>CONTAINER LOGS</strong>: Captures stdout/stderr directly from container runtimes without needing log files inside container.</div>
+                </div>
+            </div>
+
+            <!-- systemctl status -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> systemctl status &lt;service&gt;</div>
+                        <div class="cmd-intent">Check active state (running, dead, failed), PID, and CGroup memory</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ systemctl status postgresql</span>
+                    <button class="copy-btn" onclick="copyText('systemctl status postgresql')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">● postgresql.service - PostgreSQL RDBMS
+     Loaded: loaded (/lib/systemd/system/postgresql.service; enabled)
+     Active: active (running) since Tue 2026-09-22 08:00:00 UTC; 4h ago
+   Main PID: 1820 (postgres)
+     Memory: 1.2G</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>SERVICE STATES</strong>: <code>active (running)</code> = Healthy | <code>failed (Result: exit-code)</code> = Crashed! Run <code>journalctl -u postgresql</code>.</div>
+                </div>
+            </div>
+
+            <!-- podman inspect -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> podman inspect &lt;container&gt;</div>
+                        <div class="cmd-intent">Inspect container process health, OOMKilled status, ExitCode, and RestartCount</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ podman inspect app_worker --format '{{.State.ExitCode}} {{.State.OOMKilled}}'</span>
+                    <button class="copy-btn" onclick="copyText('podman inspect app_worker')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Container Health Metrics</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">ExitCode 137</span> <span>Terminated by <code>SIGKILL</code> (128 + 9 = 137), typically triggered by OOM killer</span></div>
+                        <div class="flag-row"><span class="flag-code">OOMKilled: true</span> <span>Direct kernel evidence that container exceeded RAM memory cgroup limit</span></div>
+                        <div class="flag-row"><span class="flag-code">RestartCount</span> <span>Tracks crash-looping container restart attempts</span></div>
+                    </div>
+                </div>
+                <div class="output-box">137 true</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>CONTAINER PROCESS TRIAGE</strong>: If a container won't <code>exec</code> at all, use <code>podman inspect</code> to read exit codes and crash state directly from container runtime metadata.</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="maint" class="tab-panel">
+            <!-- crontab -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> crontab -e / crontab -l</div>
+                        <div class="cmd-intent">Schedule repeating automated jobs using 5-field calendar expressions</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ crontab -e</span>
+                    <button class="copy-btn" onclick="copyText('crontab -e')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag & Location Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">crontab -e</span> <span>Edit user crontab in <code>/var/spool/cron/crontabs/&lt;user&gt;</code> (5 fields)</span></div>
+                        <div class="flag-row"><span class="flag-code">/etc/crontab</span> <span>System-wide crontab with extra <strong>USER</strong> column (6 fields: <code>min hr dom mon dow USER cmd</code>)</span></div>
+                        <div class="flag-row"><span class="flag-code">/etc/cron.daily/</span> <span>Drop-in script directory — Executable scripts run automatically via <code>run-parts</code> without editing crontab</span></div>
+                        <div class="flag-row"><span class="flag-code">sudo crontab -e</span> <span>Edit root user's crontab (required to write to <code>/var/backups</code>)</span></div>
+                    </div>
+                </div>
+                <div class="output-box"># User Crontab Syntax (5 fields): [min] [hour] [day] [month] [dow] [command]
+0 5 * * * /usr/bin/tar -zcf /var/backups/db.$(date -I).tar.gz /var/data/
+
+# System Crontab Syntax (/etc/crontab - 6 fields): [min] [hour] [day] [month] [dow] [USER] [command]
+0 5 * * * root /usr/bin/tar -zcf /var/backups/db.$(date -I).tar.gz /var/data/</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>SYSTEM CRONTAB VS DROP-IN SCRIPTS</strong>: Use <code>crontab -e</code> for user schedules (5 fields) and <code>/etc/crontab</code> for system-wide jobs requiring explicit <code>USER</code> names (6 fields), or drop an executable script into <code>/etc/cron.daily/</code> for automatic execution by <code>run-parts</code> without editing any crontab syntax.</div>
+                </div>
+            </div>
+
+            <!-- at command -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> at now + 5 minutes</div>
+                        <div class="cmd-intent">Schedule a single one-shot background job at a future time</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ echo "sh /home/spark/cleanup.sh" | at now + 5 minutes</span>
+                    <button class="copy-btn" onclick="copyText('echo &quot;sh /home/spark/cleanup.sh&quot; | at now + 5 minutes')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">at &lt;time&gt;</span> <span>Queue single job for one-time execution (e.g. <code>at 09:00 tomorrow</code>)</span></div>
+                        <div class="flag-row"><span class="flag-code">atq</span> <span>View list of pending queued <code>at</code> jobs</span></div>
+                        <div class="flag-row"><span class="flag-code">atrm &lt;jobid&gt;</span> <span>Remove/cancel specific queued <code>at</code> job</span></div>
+                    </div>
+                </div>
+                <div class="output-box">job 1 at Tue Sep 22 12:55:00 2026</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>ONE-SHOT DEFERRED JOB</strong>: Perfect for scheduling one-time maintenance restarts without waiting around in SSH.</div>
+                </div>
+            </div>
+
+            <!-- systemctl list-timers -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> systemctl list-timers</div>
+                        <div class="cmd-intent">Inspect systemd scheduled timer units on Linux cloud VMs</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ systemctl list-timers</span>
+                    <button class="copy-btn" onclick="copyText('systemctl list-timers')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">NEXT                        LEFT        LAST                        PASSED     UNIT                         ACTIVATES
+Tue 2026-09-22 13:00:00 UTC 5min left   Tue 2026-09-22 12:00:00 UTC 55min ago  logrotate.timer              logrotate.service</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>CONTAINER LIMITATION</strong>: <code>systemctl list-timers</code> works on cloud VMs (systemd PID 1), but fails inside lightweight Docker/Podman containers.</div>
+                </div>
+            </div>
+
+            <!-- kill signals -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> kill -15 vs kill -9</div>
+                        <div class="cmd-intent">Terminate unresponsive processes gracefully (SIGTERM) or forcefully (SIGKILL)</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ kill -15 2211 || kill -9 2211</span>
+                    <button class="copy-btn" onclick="copyText('kill -15 2211 || kill -9 2211')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">-15 / SIGTERM</span> <span>Graceful termination signal (allows cleanup handlers & lock file deletion)</span></div>
+                        <div class="flag-row"><span class="flag-code">-9 / SIGKILL</span> <span>Immediate kernel termination signal (uncatchable, non-graceful)</span></div>
+                    </div>
+                </div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>LOCK FILE TRAP</strong>: <code>kill -9</code> on Postgres or Spark master can leave stale lock files on disk requiring manual cleanup.</div>
+                </div>
+            </div>
+
+            <!-- nohup disown -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> nohup & disown</div>
+                        <div class="cmd-intent">Run long-running backfills & ETL scripts immune to SSH disconnects</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ nohup python3 long_backfill.py > backfill.log 2>&1 &</span>
+                    <button class="copy-btn" onclick="copyText('nohup python3 long_backfill.py > backfill.log 2>&1 &')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">nohup</span> <span>Ignores HUP (hangup) signal when SSH session terminates</span></div>
+                        <div class="flag-row"><span class="flag-code">&gt; log 2&gt;&amp;1</span> <span>Redirects stdout and stderr to target log file</span></div>
+                        <div class="flag-row"><span class="flag-code">&amp;</span> <span>Puts process into background execution immediately</span></div>
+                        <div class="flag-row"><span class="flag-code">disown %1</span> <span>Detaches job from shell session job table</span></div>
+                    </div>
+                </div>
+                <div class="output-box">[1] 4821
+(nohup: ignoring input and appending output to 'backfill.log')</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>BACKGROUND SURVIVAL</strong>: Prevents Wi-Fi blips or closing laptop screen from killing multi-hour data pipelines!</div>
+                </div>
+            </div>
+
+            <!-- File Descriptors & Redirection Banner Table -->
+            <div class="banner-container" style="background:#faf8f5; border-color:#e2d5c5; padding:1.25rem; margin-bottom:1.5rem;">
+                <div class="banner-title" style="margin-bottom:0.75rem;">
+                    <span>📂</span>
+                    <span>Standard File Descriptors (FD 0, 1, 2) & Redirection Rules</span>
+                </div>
+                <div class="banner-desc" style="margin-bottom:1rem; font-size:0.92rem; color:var(--text-heading);">
+                    Every Linux process starts with 3 default communication channels. Child processes inherit parent file descriptors automatically.
+                </div>
+                <table style="width:100%; border-collapse:collapse; font-size:0.88rem; text-align:left; background:var(--bg-main); border-radius:8px; overflow:hidden; border:1px solid var(--border-color);">
+                    <thead>
+                        <tr style="background:var(--bg-card); border-bottom:2px solid var(--border-color);">
+                            <th style="padding:0.6rem 0.8rem;">FD</th>
+                            <th style="padding:0.6rem 0.8rem;">Channel Name</th>
+                            <th style="padding:0.6rem 0.8rem;">Default Target</th>
+                            <th style="padding:0.6rem 0.8rem;">Redirection Syntax & Behavior</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom:1px solid var(--border-color);">
+                            <td style="padding:0.6rem 0.8rem; font-weight:700; color:#3a5a40;">0</td>
+                            <td style="padding:0.6rem 0.8rem;"><code>stdin</code></td>
+                            <td style="padding:0.6rem 0.8rem;">Keyboard / Pipe</td>
+                            <td style="padding:0.6rem 0.8rem;"><code>&lt; input.txt</code> (Read input from file)</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid var(--border-color);">
+                            <td style="padding:0.6rem 0.8rem; font-weight:700; color:#2b4c7e;">1</td>
+                            <td style="padding:0.6rem 0.8rem;"><code>stdout</code></td>
+                            <td style="padding:0.6rem 0.8rem;">Terminal Display</td>
+                            <td style="padding:0.6rem 0.8rem;"><code>&gt; out.log</code> (Overwrite) or <code>&gt;&gt; out.log</code> (Append)</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid var(--border-color);">
+                            <td style="padding:0.6rem 0.8rem; font-weight:700; color:#b05726;">2</td>
+                            <td style="padding:0.6rem 0.8rem;"><code>stderr</code></td>
+                            <td style="padding:0.6rem 0.8rem;">Terminal Display</td>
+                            <td style="padding:0.6rem 0.8rem;"><code>2&gt; err.log</code> (Redirect error stream only)</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:0.6rem 0.8rem; font-weight:700; color:#5c4728;">1+2</td>
+                            <td style="padding:0.6rem 0.8rem;"><code>2&gt;&amp;1</code> / <code>/dev/null</code></td>
+                            <td style="padding:0.6rem 0.8rem;">Combined Stream</td>
+                            <td style="padding:0.6rem 0.8rem;"><code>&gt; log 2&gt;&amp;1</code> (Combine stdout+stderr into log) or <code>&gt; /dev/null 2&gt;&amp;1</code> (Silence all)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Command Block: Redirection Order & Process FD Inheritance -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> Redirection Order & Process FD Inheritance</div>
+                        <div class="cmd-intent">Understand why redirection sequence matters and how child subprocesses inherit file descriptors</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ spark-submit pipeline.py > pipeline.log 2>&1</span>
+                    <button class="copy-btn" onclick="copyText('spark-submit pipeline.py > pipeline.log 2>&1')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Golden Redirection Rules</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">&gt; file 2&gt;&amp;1</span> <span>✅ <strong>CORRECT SEQUENCE</strong>: Points stdout (1) to file, then points stderr (2) to wherever 1 points!</span></div>
+                        <div class="flag-row"><span class="flag-code">2&gt;&amp;1 &gt; file</span> <span>❌ <strong>WRONG SEQUENCE</strong>: Points stderr (2) to terminal first, then moves stdout (1) to file (stderr leaks to terminal)!</span></div>
+                <div class="output-box"># Process Tree & FD Stream Inheritance:
+python script.py (> pipeline.log 2>&1)
+  └── spark-submit (inherits stdout=pipeline.log, stderr=pipeline.log)
+      └── java SparkDriver (inherits stdout=pipeline.log, stderr=pipeline.log)</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>SUBPROCESS INHERITANCE</strong>: When Python or Bash redirects <code>&gt; log 2&gt;&amp;1</code>, all child processes launched by <code>os.system</code> or <code>subprocess.Popen</code> naturally stream stdout and stderr into that same log file without needing manual log forwarding code.</div>
+                </div>
+            </div>
+
+            <!-- set -euo pipefail -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> set -euo pipefail</div>
+                        <div class="cmd-intent">Strict Bash script safety header to fail fast on errors & undefined variables</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">#!/usr/bin/env bash
+set -euo pipefail</span>
+                    <button class="copy-btn" onclick="copyText('set -euo pipefail')">📋 Copy Command</button>
+                </div>
+                <div class="flags-box">
+                    <div class="flags-box-header"><span>🔑</span> <span>Flag Breakdown</span></div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">-e</span> <span>Exit script immediately if any command returns a non-zero exit code</span></div>
+                        <div class="flag-row"><span class="flag-code">-u</span> <span>Treat unset / undefined variables as errors and exit immediately</span></div>
+                        <div class="flag-row"><span class="flag-code">-o pipefail</span> <span>Return exit status of last command in pipeline that failed</span></div>
+                    </div>
+                </div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>BASH SAFEGUARD</strong>: Prevents disastrous accidental commands like <code>rm -rf / $UNSET_VAR</code> from executing!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sub-Page Navigation Tabs -->
+        <div class="sub-tabs">
+            <button class="tab-btn active" onclick="switchTab('concepts', this)">🧠 Master Concepts</button>
+            <button class="tab-btn" onclick="switchTab('incidents', this)">🚨 Incident Workflows</button>
+            <button class="tab-btn" onclick="switchTab('detail', this)">📖 All Commands Detail</button>
+        </div>
+
+        <!-- TAB 1: Master Concepts -->
+        <div id="concepts" class="tab-panel active">
+            <div class="cards-grid" style="grid-template-columns: 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+                <div class="cmd-block" style="border-left: 5px solid var(--c-sage-green);">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        ⚙️ Concept 1: Systemd Unit Management vs Legacy Cron &amp; At
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-body);">
+                        Linux daemon supervision and task automation architecture:<br>
+                        • <strong>Systemd (.service / .timer)</strong>: PID 1 init system. Supervises processes, manages cgroups, logs stdout/stderr to journald, and auto-restarts failed services.<br>
+                        • <strong>Cron (crontab -e)</strong>: Calendar-based task scheduler (5-field syntax: <code>min hr dom mon dow</code>). Runs periodic maintenance &amp; backups.<br>
+                        • <strong>At (atd)</strong>: One-shot future task queue (e.g. <code>at now + 15 minutes</code>).
+                    </div>
+                </div>
+
+                <div class="cmd-block" style="border-left: 5px solid var(--c-taupe);">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        🛑 Concept 2: Signal Hygiene (SIGTERM 15 vs SIGKILL 9)
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-body);">
+                        Process termination signal discipline:<br>
+                        • <strong>SIGTERM (15)</strong>: Catchable termination request. Allows process to flush buffers, release file locks, close database pools, and exit cleanly.<br>
+                        • <strong>SIGKILL (9)</strong>: Immediate un-catchable kernel kill. Leaves corrupt database tables and lock files! Use ONLY when process ignores SIGTERM.
+                    </div>
+                </div>
+
+                <div class="cmd-block" style="border-left: 5px solid #2b4c7e;">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        🐳 Concept 4: Docker Container Entrypoints, Here-Docs &amp; Fail-Fast Automation
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-body);">
+                        Production shell scripting for containerized ETL pipelines and orchestrators:<br>
+                        • <strong>Portable Shebang (<code>#!/usr/bin/env bash</code>)</strong>: Ensures cross-distro portability across Ubuntu, Alpine, Debian, and RHEL base images.<br>
+                        • <strong>Here-Documents (<code>cat &lt;&lt; 'EOF' &gt; config.json</code>)</strong>: Dynamically generates runtime JSON configs or DB schema updates inside container entrypoint scripts.<br>
+                        • <strong>Log Analysis Chains</strong>: Audit ETL error logs rapidly via <code>grep -i 'error' /var/log/pipeline.log | cut -d' ' -f4 | sort | uniq -c | sort -nr | head -n 10</code>.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Debug-Relevant System Paths -->
+            <div class="banner-container" style="background:#f6f8f6; border-color:var(--border-subtle); padding: 1.25rem;">
+                <div class="banner-title" style="font-size: 1.1rem; margin-bottom: 0.85rem;">
+                    📁 System Paths &amp; Config Files
+                </div>
+                <div class="cards-grid">
+                    <div class="path-card">
+                        <div class="path-header"><span class="path-code">/var/spool/cron/crontabs/&lt;user&gt;</span><span class="priority-tag p-high">🔥 High Debug Value</span></div>
+                        <p style="font-size:0.9rem; color:var(--text-body);">User-specific crontab schedule files managed via <code>crontab -e</code> (5-field syntax, runs as user).</p>
+                    </div>
+                    <div class="path-card">
+                        <div class="path-header"><span class="path-code">/etc/crontab</span><span class="priority-tag p-high">🔥 High Debug Value</span></div>
+                        <p style="font-size:0.9rem; color:var(--text-body);">System-wide crontab file featuring an extra <strong>username column</strong> (6-field syntax: <code>min hr dom mon dow USER cmd</code>).</p>
+                    </div>
+                    <div class="path-card">
+                        <div class="path-header"><span class="path-code">/etc/systemd/system/</span><span class="priority-tag p-sys">ℹ️ System Reference</span></div>
+                        <p style="font-size:0.9rem; color:var(--text-body);">Directory containing custom administrator systemd service and timer unit files (<code>.service</code>, <code>.timer</code>).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Incident Workflows -->
+        <div id="incidents" class="tab-panel">
+            <div class="incident-flow-card" data-category="services">
+                <div class="incident-card-header">
+                    <div class="incident-card-title-group">
+                        <h3 class="incident-card-title">⚙️ Systemd Unit Crash Loops &amp; Start Failures</h3>
+                    </div>
+                    <div class="incident-card-actions">
+                        <span class="category-badge">Services &amp; Logs</span>
+                    </div>
+                </div>
+
+                <div class="incident-strategy-banner decision-box">
+                    <strong>🎯 Triage Strategy &amp; Intention Logic:</strong>
+                    <div class="step-list">
+                        <span>• <strong>Host vs Container Daemons:</strong> Host VM daemons use <code>systemctl</code>/<code>journalctl</code> (PID 1 systemd). Containers use <code>podman logs</code> (PID 1 App).</span>
+                        <span>• <strong>Tracebacks &amp; Reload:</strong> Fetch exception stacktraces from journal logs, verify script safeguards, and reload systemd unit definitions.</span>
+                    </div>
+                </div>
+
+                <div class="incident-steps-grid">
+                    <!-- Step 1 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 1: Unit Status</span>
+                            <button class="cmd-node" onclick="openModal('systemctl')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">systemctl</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>systemctl status &lt;svc&gt; -l</code>
+                        </div>
+                        <div class="step-intent-desc">Inspect daemon runtime state (active vs failed) and unit exit failure code</div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 2: Trace Logs</span>
+                            <button class="cmd-node" onclick="openModal('journalctl')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">journalctl</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>journalctl -u &lt;svc&gt; -e -n 100 -f</code>
+                        </div>
+                        <div class="step-intent-desc">Fetch detailed exception tracebacks from host systemd logs or container logs</div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 3: Inspect Unit</span>
+                            <button class="cmd-node" onclick="openModal('set-safeguard')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">set -eu</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>systemctl cat &lt;svc&gt;</code>
+                        </div>
+                        <div class="step-intent-desc">Verify ExecStart binary path, environment files, and script error safeguards</div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 4: Remediation</span>
+                            <button class="cmd-node" onclick="openModal('nohup-disown')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">reload</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>systemctl daemon-reload</code>
+                        </div>
+                        <div class="step-intent-desc">Fix configuration file paths and reload systemd daemon definitions</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cards-grid" style="margin-top: 1rem;">
+                <div class="scenario-card">
+                    <h3 style="font-size:1.02rem; font-weight:700; color:var(--text-heading); margin-bottom:0.4rem;">🔄 Service In Start-Limit-Hit Crash Loop</h3>
+                    <p style="font-size:0.9rem; color:var(--text-body);">If <code>systemctl status</code> shows <em>"start-limit-hit"</em>, systemd stopped restarting the service after 5 rapid crashes. Fix underlying config error, then run <code>sudo systemctl reset-failed</code>.</p>
+                </div>
+                <div class="scenario-card">
+                    <h3 style="font-size:1.02rem; font-weight:700; color:var(--text-heading); margin-bottom:0.4rem;">💾 Missing Backup Retention Cleanup (100% Full Disk)</h3>
+                    <p style="font-size:0.9rem; color:var(--text-body);">Creating daily database tarball backups with cron without a retention deletion line (<code>find /var/backups -name "*.tar.gz" -mtime +7 -delete</code>) will fill disk space to 100% within days! Always pair backup cron jobs with a 7-day purge rule.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: All Commands Detail -->
+        <div id="detail" class="tab-panel">
+            <h3 style="font-size: 1.15rem; color: var(--text-heading); margin-bottom: 1.2rem;">📖 All Services &amp; Daemon Commands (Flat Scannable View)</h3>
+
+            <!-- journalctl -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> journalctl -u &lt;service&gt; -f</div>
+                        <div class="cmd-intent">Tail live systemd binary logs for specific daemon service</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ journalctl -u nginx -f --no-pager</span>
+                    <button class="copy-btn" onclick="copyText('journalctl -u nginx -f --no-pager')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">Sep 22 12:00:01 prod-vm nginx[1045]: 2026/09/22 12:00:01 [error] 1045#1045: *120 connect() failed (111: Connection refused) while connecting to upstream</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>PRO TIP</strong>: Add <code>--no-pager</code> when running in automation or piped scripts to avoid interactive less paging.</div>
+                </div>
+            </div>
+
+            <!-- systemctl -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> systemctl status / restart / enable &lt;service&gt;</div>
+                        <div class="cmd-intent">Inspect status, restart daemon, and enable boot auto-start</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ sudo systemctl restart nginx &amp;&amp; sudo systemctl status nginx</span>
+                    <button class="copy-btn" onclick="copyText('sudo systemctl restart nginx')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">● nginx.service - A high performance web server and a reverse proxy server
+   Loaded: loaded (/lib/systemd/system/nginx.service; enabled; vendor preset: enabled)
+   Active: active (running) since Tue 2026-09-22 12:05:00 UTC; 10s ago</div>
+            </div>
+
+            <!-- crontab -e -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> crontab -e &amp; crontab -l</div>
+                        <div class="cmd-intent">Edit and list user scheduled recurring calendar cron jobs</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ crontab -l</span>
+                    <button class="copy-btn" onclick="copyText('crontab -l')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">0 2 * * * /usr/local/bin/db_backup.sh &gt; /var/log/backup.log 2&gt;&amp;1</div>
+            </div>
+
+            <!-- set -euo pipefail -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div>
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> set -euo pipefail</div>
+                        <div class="cmd-intent">Strict Bash script safety header to fail fast on errors &amp; undefined variables</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">#!/usr/bin/env bash
+set -euo pipefail</span>
+                    <button class="copy-btn" onclick="copyText('set -euo pipefail')">📋 Copy Command</button>
+                </div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>BASH SAFEGUARD</strong>: Prevents disastrous accidental commands like <code>rm -rf / $UNSET_VAR</code> from executing!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">Copied to clipboard!</div>
+    <script>
+        function switchTab(panelId, btnElem) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            if (!btnElem) {
+                btnElem = document.querySelector(`.tab-btn[onclick*="'${panelId}'"]`);
+            }
+            if (btnElem) btnElem.classList.add('active');
+            const target = document.getElementById(panelId);
+            if (target) target.classList.add('active');
+
+            try {
+                if (window.location.hash !== '#' + panelId) {
+                    history.replaceState(null, null, '#' + panelId);
+                }
+                localStorage.setItem('activeSubpageTab', panelId);
+            } catch (e) {}
+        }
+
+        function restoreSubpageTabState() {
+            let panel = 'concepts';
+            const hash = window.location.hash.replace('#', '').toLowerCase();
+            if (['incidents', 'workflows'].includes(hash)) {
+                panel = 'incidents';
+            } else if (['detail', 'commands'].includes(hash)) {
+                panel = 'detail';
+            } else if (['concepts', 'master'].includes(hash)) {
+                panel = 'concepts';
+            } else {
+                try {
+                    const saved = localStorage.getItem('activeSubpageTab');
+                    if (saved) panel = saved;
+                } catch (e) {}
+            }
+            switchTab(panel);
+        }
+
+        document.addEventListener('DOMContentLoaded', restoreSubpageTabState);
+        window.addEventListener('hashchange', restoreSubpageTabState);
+
+        function copyText(str) {
+            navigator.clipboard.writeText(str).then(() => {
+                const toast = document.getElementById('toast');
+                toast.textContent = `Copied "${str}" to clipboard!`;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+        }
+
+        function openModal(cmdId) {
+            const detailTabBtn = document.querySelectorAll('.tab-btn')[2];
+            if (detailTabBtn) switchTab('detail', detailTabBtn);
+        }
+
+        function openChildPage(catKey) {
+            window.location.href = catKey + '.html';
+        }
+    </script>
+</body>
+</html>

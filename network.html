@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network & Ports — Deep Dive Sub-Page | Linux Server Triage</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --c-tea-green: #cbe896;
+            --c-sage-green: #aac0aa;
+            --c-warm-sand: #fcdfa6;
+            --c-peach: #f4b886;
+            --c-taupe: #a18276;
+            --c-soft-sage: #e9edc9;
+
+            --bg-canvas: #f6f8f6;
+            --bg-board: #ffffff;
+            --bg-card: #ffffff;
+            --border-subtle: #e1e8e2;
+            
+            --text-heading: #2d2421;
+            --text-body: #3c322e;
+            --text-muted: #7a6b65;
+            
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'Fira Code', monospace;
+            
+            --shadow-card: 0 4px 12px -2px rgba(161, 130, 118, 0.08);
+            --shadow-hover: 0 6px 16px -3px rgba(161, 130, 118, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-body);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            max-width: 1120px;
+            margin: 0 auto;
+            background: var(--bg-board);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 2.25rem;
+            box-shadow: var(--shadow-card);
+        }
+
+        /* Top Navigation Header */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: var(--text-heading);
+            font-weight: 600;
+            font-size: 0.9rem;
+            background: var(--bg-canvas);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--c-soft-sage);
+            border-color: var(--c-sage-green);
+            transform: translateX(-2px);
+        }
+
+        .domain-badge {
+            background: #faedcd;
+            color: #5c4728;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.35rem 0.85rem;
+            border-radius: 20px;
+            border: 1px solid #f4d386;
+            letter-spacing: 0.02em;
+        }
+
+        .header-title {
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            margin-bottom: 0.35rem;
+            letter-spacing: -0.01em;
+        }
+
+        .header-subtitle {
+            color: var(--text-muted);
+            font-size: 0.98rem;
+            margin-bottom: 1.75rem;
+        }
+
+        /* 3-Gate Security Chain Architecture */
+        .gate-chain-container {
+            background: #faf8f5;
+            border: 1px solid #f4b886;
+            border-radius: 14px;
+            padding: 1.35rem 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(244, 184, 134, 0.08);
+        }
+
+        .gate-title {
+            font-weight: 700;
+            color: var(--text-heading);
+            font-size: 1.08rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .gate-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 850px) {
+            .gate-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .gate-card {
+            background: #ffffff;
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 1rem 1.1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 0.5rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        .gate-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .gate-tag {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.22rem 0.6rem;
+            border-radius: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .gt-1 { background: #ffe8d6; color: #b05726; border: 1px solid #f4b886; }
+        .gt-2 { background: #e9edc9; color: #3a5a40; border: 1px solid #aac0aa; }
+        .gt-3 { background: #d8e2dc; color: #1d3557; border: 1px solid #a8dadc; }
+
+        .gate-arrow {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .gate-name {
+            font-weight: 700;
+            font-size: 0.98rem;
+            color: var(--text-heading);
+        }
+
+        .gate-desc {
+            font-size: 0.86rem;
+            color: var(--text-body);
+            line-height: 1.5;
+        }
+
+        /* Sub-Tabs Bar */
+        .sub-tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 2px solid var(--border-subtle);
+            margin-bottom: 1.75rem;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 0.75rem 1.25rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-heading);
+            background: var(--bg-canvas);
+            border-radius: 6px 6px 0 0;
+        }
+
+        .tab-btn.active {
+            color: var(--text-heading);
+            border-bottom-color: var(--c-taupe);
+            font-weight: 700;
+        }
+
+        .tab-panel {
+            display: none;
+            flex-direction: column;
+            gap: 1.75rem;
+        }
+
+        .tab-panel.active {
+            display: flex;
+        }
+
+        /* Command Cards */
+        .cmd-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1.35rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            transition: border-color 0.2s ease;
+        }
+
+        .cmd-block:hover {
+            border-color: var(--c-sage-green);
+        }
+
+        .cmd-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .cmd-title-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .cmd-title {
+            font-size: 1.12rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            font-family: var(--font-sans);
+        }
+
+        .cmd-icon {
+            color: var(--c-taupe);
+            font-family: var(--font-mono);
+            font-weight: 700;
+        }
+
+        .cmd-intent {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .code-box {
+            background: #2d2421;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: #f6f8f6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            overflow-x: auto;
+        }
+
+        .code-text {
+            color: #cbe896;
+            font-weight: 600;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .copy-btn:hover {
+            background: #cbe896;
+            color: #2d2421;
+            border-color: #cbe896;
+        }
+
+        /* Single Unified Flags Container Box */
+        .flags-box {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .flags-box-header {
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding-bottom: 0.35rem;
+            border-bottom: 1px dashed var(--border-subtle);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .flags-box-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .flag-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--text-body);
+        }
+
+        .flag-code {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--text-heading);
+            background: #ffffff;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-subtle);
+            font-size: 0.8rem;
+            white-space: nowrap;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .output-box {
+            background: #faf8f5;
+            color: #2d2421;
+            border: 1px solid #e1e8e2;
+            font-family: var(--font-mono);
+            font-size: 0.83rem;
+            padding: 0.85rem 1.1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.5;
+        }
+
+        .metric-box {
+            background: #faedcd;
+            color: #5c4728;
+            border: 1px solid #f4d386;
+            border-radius: 8px;
+            padding: 0.65rem 0.95rem;
+            font-size: 0.86rem;
+            font-weight: 500;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            line-height: 1.5;
+        }
+
+        /* Vertical Single-Column Layout for Paths & Scenarios */
+        .cards-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .path-card, .scenario-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        .path-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .path-code {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 0.98rem;
+            color: var(--text-heading);
+            background: var(--bg-canvas);
+            padding: 0.2rem 0.5rem;
+            border-radius: 5px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .priority-tag {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.22rem 0.55rem;
+            border-radius: 5px;
+        }
+
+        .p-high { background: #fcdfa6; color: #2d2421; border: 1px solid #f4b886; }
+        .p-sys { background: #e1e8e2; color: #4a3e39; border: 1px solid #aac0aa; }
+
+        /* Toast notification */
+        #toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--text-heading);
+            color: #ffffff;
+            padding: 0.65rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.25s ease;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Consolidated Incident Flow Card Container */
+        .incident-flow-card {
+            background: #ffffff;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1.1rem 1.35rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            box-shadow: var(--shadow-card);
+            transition: all 0.2s ease;
+            margin-bottom: 1rem;
+        }
+
+        .incident-flow-card:hover {
+            border-color: var(--c-taupe);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .incident-flow-card[data-category="identity"] { border-left: 5px solid var(--c-sage-green); }
+        .incident-flow-card[data-category="cpu"]      { border-left: 5px solid var(--c-peach); }
+        .incident-flow-card[data-category="memory"]   { border-left: 5px solid var(--c-warm-sand); }
+        .incident-flow-card[data-category="disk"]     { border-left: 5px solid var(--c-tea-green); }
+        .incident-flow-card[data-category="network"]  { border-left: 5px solid var(--c-taupe); }
+        .incident-flow-card[data-category="services"] { border-left: 5px solid var(--c-sage-green); }
+
+        .incident-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .incident-card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .incident-card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+
+        .incident-card-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Clean Neutral Strategy Banner */
+        .incident-strategy-banner {
+            background: #f6f8f6;
+            border: 1px solid #e1e8e2;
+            border-radius: 8px;
+            padding: 0.65rem 0.85rem;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .rule-badge {
+            color: #4a3e39;
+            font-weight: 700;
+            font-size: 0.82rem;
+            flex-shrink: 0;
+            margin-right: 0.15rem;
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
+        .incident-steps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+
+        @media (max-width: 1024px) {
+            .incident-steps-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .incident-step-card {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 0.75rem 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .step-code-box {
+            margin: 0.15rem 0;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .step-code-box code {
+            background: #fdf2e1;
+            border: 1px solid #f5c278;
+            color: #4a2810;
+            font-weight: 700;
+            padding: 0.22rem 0.55rem;
+            border-radius: 5px;
+            display: inline-block;
+            font-size: 0.78rem;
+        }
+
+        .step-intent-desc {
+            font-size: 0.75rem;
+            color: var(--text-body);
+            line-height: 1.35;
+        }
+
+        .step-tag-num {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        /* Soft Unified Sage Green Tags */
+        .step-tag {
+            background: #e8efe8;
+            color: #2d3a28;
+            border: 1px solid #c2d1b0;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.72rem;
+            white-space: nowrap;
+        }
+        .cmd-node {
+            background: #edf1d8;
+            border: 1px solid #c4cb98;
+            border-radius: 6px;
+            padding: 0.3rem 0.55rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            box-shadow: 0 1px 3px rgba(65, 78, 50, 0.08);
+            position: relative;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .cmd-node:hover {
+            background: #e2e8c2;
+            border-color: #a8b276;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(168, 178, 118, 0.3);
+        }
+        .cmd-node:hover .cmd-label,
+        .cmd-node:hover .cmd-icon {
+            color: #2b3824;
+        }
+        .cmd-icon {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: #36432f;
+            font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .cmd-label {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: #36432f;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <!-- Top Navigation Bar -->
+        <div class="top-nav">
+            <a href="linux_cheatsheet.html" class="back-btn">
+                <span>←</span>
+                <span>Back to Main Flowchart</span>
+            </a>
+            <span class="domain-badge">🌐 Network Domain Sub-Page</span>
+        </div>
+
+        <!-- Header -->
+        <h1 class="header-title">Network & Ports — Deep Dive Reference</h1>
+        <p class="header-subtitle">Comprehensive guide to socket bind IP verification (127.0.0.1 vs 0.0.0.0), port reachability probing, PID lookup, and host firewalls.</p>
+
+        <!-- 3-Gate Security Chain Architecture -->
+        <div class="gate-chain-container">
+            <div class="gate-title">
+                <span>🛡️</span>
+                <span>The 3-Gate Network Security Chain (Every Gate Must Say YES!)</span>
+            </div>
+            <div class="gate-grid">
+                <div class="gate-card">
+                    <div class="gate-card-header">
+                        <span class="gate-tag gt-1">Gate ① Cloud SG</span>
+                        <span class="gate-arrow">➔ STEP 1</span>
+                    </div>
+                    <div class="gate-name">Cloud Security Group</div>
+                    <div class="gate-desc">AWS SG / GCP Firewall (outside host VM). Must explicitly allow inbound port before packets can reach Linux kernel!</div>
+                </div>
+                <div class="gate-card">
+                    <div class="gate-card-header">
+                        <span class="gate-tag gt-2">Gate ② Host OS Firewall</span>
+                        <span class="gate-arrow">➔ STEP 2</span>
+                    </div>
+                    <div class="gate-name">Local Linux Firewall (UFW)</div>
+                    <div class="gate-desc">Kernel firewall filter. Must run <code>sudo ufw allow 8080/tcp</code> to open port in local netfilter tables.</div>
+                </div>
+                <div class="gate-card">
+                    <div class="gate-card-header">
+                        <span class="gate-tag gt-3">Gate ③ App Socket Bind</span>
+                        <span class="gate-arrow">➔ STEP 3</span>
+                    </div>
+                    <div class="gate-name">Process Socket IP Bind</div>
+                    <div class="gate-desc">App socket binding. Must listen on <code>0.0.0.0</code> (public interfaces), NOT <code>127.0.0.1</code> (localhost loopback only).</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sub-Page Navigation Tabs -->
+        <div class="sub-tabs">
+            <button class="tab-btn active" onclick="switchTab('diag', this)">🚦 Diagnostics & Probes</button>
+            <button class="tab-btn" onclick="switchTab('maint', this)">🛠️ Maintenance & Setup</button>
+            <button class="tab-btn" onclick="switchTab('paths', this)">📁 System Paths & Configs</button>
+            <button class="tab-btn" onclick="switchTab('scenarios', this)">💡 Real Incident Scenarios</button>
+        </div>
+
+        <!-- Panel 1: Diagnostics -->
+        <div id="diag" class="tab-panel active">
+            <!-- Command 1: ss -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div class="cmd-title-group">
+                        <div class="cmd-title">
+                            <span class="cmd-icon">&gt;_</span>
+                            <span>ss -tulpn</span>
+                        </div>
+                        <div class="cmd-intent">Verify local socket bind IP address & process listening state</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ ss -tulpn | grep 8080</span>
+                    <button class="copy-btn" onclick="copyText('ss -tulpn | grep 8080')">📋 Copy Command</button>
+                </div>
+                
+                <!-- Single Unified Flags Container Box -->
+                <div class="flags-box">
+                    <div class="flags-box-header">
+                        <span>🔑</span>
+                        <span>Flag & Option Breakdown</span>
+                    </div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">-t</span> <span>Display TCP protocol sockets</span></div>
+                        <div class="flag-row"><span class="flag-code">-u</span> <span>Display UDP protocol sockets</span></div>
+                        <div class="flag-row"><span class="flag-code">-l</span> <span>Show listening sockets only</span></div>
+                        <div class="flag-row"><span class="flag-code">-p</span> <span>Show process PID & process name holding socket</span></div>
+                        <div class="flag-row"><span class="flag-code">-n</span> <span>Numeric port numbers (e.g., 8080 instead of http-alt)</span></div>
+                    </div>
+                </div>
+
+                <div class="output-box">Netid State  Local Address:Port  Peer Address:Port  Process
+tcp   LISTEN 127.0.0.1:8080      0.0.0.0:*          users:(("java",pid=2211))
+tcp   LISTEN 0.0.0.0:80          0.0.0.0:*          users:(("nginx",pid=1045))</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>BIND RULE</strong>: <code>127.0.0.1:8080</code> = Localhost ONLY (Remote clients blocked!). <code>0.0.0.0:80</code> = Publicly accessible on all network interfaces.</div>
+                </div>
+            </div>
+
+            <!-- Command 2: nmap -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div class="cmd-title-group">
+                        <div class="cmd-title">
+                            <span class="cmd-icon">&gt;_</span>
+                            <span>nmap -p &lt;port&gt; &lt;host&gt;</span>
+                        </div>
+                        <div class="cmd-intent">Probe remote/local port reachability & firewall packet drop state</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ nmap -p 8080 192.168.1.50</span>
+                    <button class="copy-btn" onclick="copyText('nmap -p 8080 192.168.1.50')">📋 Copy Command</button>
+                </div>
+                
+                <!-- Single Unified Flags Container Box -->
+                <div class="flags-box">
+                    <div class="flags-box-header">
+                        <span>🔑</span>
+                        <span>Flag & Option Breakdown</span>
+                    </div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">-p &lt;port&gt;</span> <span>Specify target port number to scan (e.g. -p 8080)</span></div>
+                    </div>
+                </div>
+
+                <div class="output-box">PORT     STATE    SERVICE
+8080/tcp filtered http-proxy</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>STATE CODES</strong>: <code>open</code> = Reachable | <code>closed</code> = Host reached, no app listening | <code>filtered</code> = Firewall dropped packet silently!</div>
+                </div>
+            </div>
+
+            <!-- Command 3: lsof -i -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div class="cmd-title-group">
+                        <div class="cmd-title">
+                            <span class="cmd-icon">&gt;_</span>
+                            <span>lsof -i :&lt;port&gt;</span>
+                        </div>
+                        <div class="cmd-intent">Identify exact process PID, user owner, and command bound to port</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ lsof -i :8080</span>
+                    <button class="copy-btn" onclick="copyText('lsof -i :8080')">📋 Copy Command</button>
+                </div>
+                
+                <!-- Single Unified Flags Container Box -->
+                <div class="flags-box">
+                    <div class="flags-box-header">
+                        <span>🔑</span>
+                        <span>Flag & Option Breakdown</span>
+                    </div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">-i :&lt;port&gt;</span> <span>Filter open sockets by specific port (e.g. -i :8080)</span></div>
+                        <div class="flag-row"><span class="flag-code">-i TCP:&lt;port&gt;</span> <span>Filter specifically for TCP protocol sockets</span></div>
+                    </div>
+                </div>
+
+                <div class="output-box">COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+java    2211  spark   3u  IPv4  42109      0t0  TCP *:8080 (LISTEN)</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>PORT HOLDER LOOKUP</strong>: Resolves PID <code>2211</code> and User <code>spark</code> holding port 8080. If stale, run <code>kill -9 2211</code>.</div>
+                </div>
+            </div>
+
+            <!-- Command 4: nc netcat -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div class="cmd-title-group">
+                        <div class="cmd-title">
+                            <span class="cmd-icon">&gt;_</span>
+                            <span>nc -zv &lt;host&gt; &lt;port&gt;</span>
+                        </div>
+                        <div class="cmd-intent">Test direct raw TCP socket connection handshake to remote server</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ nc -zv 172.16.0.5 5432</span>
+                    <button class="copy-btn" onclick="copyText('nc -zv 172.16.0.5 5432')">📋 Copy Command</button>
+                </div>
+                
+                <!-- Single Unified Flags Container Box -->
+                <div class="flags-box">
+                    <div class="flags-box-header">
+                        <span>🔑</span>
+                        <span>Flag & Option Breakdown</span>
+                    </div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">-z</span> <span>Zero-I/O scan mode (close socket connection immediately after handshake)</span></div>
+                        <div class="flag-row"><span class="flag-code">-v</span> <span>Verbose output (display connection success or error details)</span></div>
+                    </div>
+                </div>
+
+                <div class="output-box">Connection to 172.16.0.5 5432 port [tcp/postgresql] succeeded!</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>FAST TCP HANDSHAKE</strong>: Tests remote database/service port reachability in 1 second without needing psql/curl installed.</div>
+                </div>
+            </div>
+
+            <!-- Command: getent hosts -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div class="cmd-title-group">
+                        <div class="cmd-title">
+                            <span class="cmd-icon">&gt;_</span>
+                            <span>getent hosts &lt;hostname&gt;</span>
+                        </div>
+                        <div class="cmd-intent">Probe system hostname resolution via /etc/nsswitch.conf order (/etc/hosts ➔ DNS)</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ getent hosts db.internal || echo "Failed with exit code $?"</span>
+                    <button class="copy-btn" onclick="copyText('getent hosts db.internal')">📋 Copy Command</button>
+                </div>
+                
+                <div class="flags-box">
+                    <div class="flags-box-header">
+                        <span>🔑</span>
+                        <span>Exit Code Evidence Matrix</span>
+                    </div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">Exit Code 0</span> <span>Successfully resolved IP address (prints IP and hostname)</span></div>
+                        <div class="flag-row"><span class="flag-code">Exit Code 2</span> <span>Host name not found (DNS or <code>/etc/hosts</code> lookup failed)</span></div>
+                        <div class="flag-row"><span class="flag-code">getent hosts localhost</span> <span><strong>SANITY TEST</strong>: Tests if system resolver itself is working</span></div>
+                    </div>
+                </div>
+
+                <div class="output-box">10.0.4.15        db.internal.production.local</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>RESOLVER TRIAGE</strong>: <code>getent hosts</code> respects system <code>/etc/nsswitch.conf</code> order (unlike <code>nslookup</code> / <code>dig</code> which query DNS directly and bypass <code>/etc/hosts</code>).</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel 2: Maintenance & Setup -->
+        <div id="maint" class="tab-panel">
+            <!-- Command 5: ufw -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div class="cmd-title-group">
+                        <div class="cmd-title">
+                            <span class="cmd-icon">&gt;_</span>
+                            <span>sudo ufw status / allow</span>
+                        </div>
+                        <div class="cmd-intent">Inspect & update local Linux kernel firewall rules</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ sudo ufw status verbose</span>
+                    <button class="copy-btn" onclick="copyText('sudo ufw status verbose')">📋 Copy Command</button>
+                </div>
+                
+                <!-- Single Unified Flags Container Box -->
+                <div class="flags-box">
+                    <div class="flags-box-header">
+                        <span>🔑</span>
+                        <span>Flag & Option Breakdown</span>
+                    </div>
+                    <div class="flags-box-body">
+                        <div class="flag-row"><span class="flag-code">status</span> <span>Display active firewall rules (ALLOW vs DENY)</span></div>
+                        <div class="flag-row"><span class="flag-code">allow &lt;port&gt;/tcp</span> <span>Open inbound TCP port in local kernel (e.g. <code>sudo ufw allow 8080/tcp</code>)</span></div>
+                        <div class="flag-row"><span class="flag-code">enable</span> <span>Activate UFW kernel rules (⚠️ ALWAYS run <code>allow 22/tcp</code> first!)</span></div>
+                    </div>
+                </div>
+
+                <div class="output-box">Status: active
+
+To                         Action      From
+--                         ------      ----
+22/tcp                     ALLOW       Anywhere
+8080/tcp                   DENY        Anywhere</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>SECURITY NOTICE</strong>: If UFW is active and target port is set to <code>DENY</code>, connection packets are silently dropped at the OS level.</div>
+                </div>
+            </div>
+
+            <!-- Command 6: hostnamectl -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div class="cmd-title-group">
+                        <div class="cmd-title">
+                            <span class="cmd-icon">&gt;_</span>
+                            <span>hostname -I / hostnamectl</span>
+                        </div>
+                        <div class="cmd-intent">Query server internal IP addresses & set system network hostname</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ hostname -I</span>
+                    <button class="copy-btn" onclick="copyText('hostname -I')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">192.168.1.50 172.17.0.1</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>IP LOOKUP</strong>: <code>hostname -I</code> outputs all local network interface IP addresses assigned to this VM.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sub-Page Navigation Tabs -->
+        <div class="sub-tabs">
+            <button class="tab-btn active" onclick="switchTab('concepts', this)">🧠 Master Concepts</button>
+            <button class="tab-btn" onclick="switchTab('incidents', this)">🚨 Incident Workflows</button>
+            <button class="tab-btn" onclick="switchTab('detail', this)">📖 All Commands Detail</button>
+        </div>
+
+        <!-- TAB 1: Master Concepts -->
+        <div id="concepts" class="tab-panel active">
+            <div class="cards-grid" style="grid-template-columns: 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+                <div class="cmd-block" style="border-left: 5px solid var(--c-sage-green);">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        🌐 Concept 1: Socket Bind IPs (127.0.0.1 vs 0.0.0.0 vs Private IP)
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-body);">
+                        Network applications bind to specific IP interfaces:<br>
+                        • <code>127.0.0.1:8080</code> (Localhost): Accepts connections ONLY from internal local processes. Remote clients receive <em>"Connection Refused"</em>.<br>
+                        • <code>0.0.0.0:8080</code> (Any Interface): Accepts incoming connections on ALL network interfaces (eth0, docker0, loopback).<br>
+                        • <strong>Rule</strong>: Public web microservices must bind to <code>0.0.0.0</code>!
+                    </div>
+                </div>
+
+                <div class="cmd-block" style="border-left: 5px solid var(--c-taupe);">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        🔌 Concept 2: TCP Socket States (ESTABLISHED, LISTEN, TIME_WAIT)
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-body);">
+                        Kernel TCP socket lifecycle state tracking:<br>
+                        • <code>LISTEN</code>: Application is waiting for incoming client connections.<br>
+                        • <code>ESTABLISHED</code>: Active 3-way handshake completed; data is transferring.<br>
+                        • <code>TIME_WAIT</code>: Active close initiated; kernel waits 2x MSL (Maximum Segment Lifetime ~60s) before freeing socket tuple. High TIME_WAIT accumulation indicates connection pooling exhaustion.
+                    </div>
+                </div>
+
+                <div class="cmd-block" style="border-left: 5px solid var(--c-peach);">
+                    <div class="cmd-title" style="font-size: 1.1rem; color: var(--text-heading); margin-bottom: 0.5rem;">
+                        🛡️ Concept 3: The 3-Gate Network Security Chain
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-body);">
+                        Every incoming TCP request must pass through 3 independent security gates:<br>
+                        • <strong>Gate ① Cloud Security Group</strong>: Cloud provider network ACLs.<br>
+                        • <strong>Gate ② Host OS Firewall (UFW/iptables)</strong>: Local kernel netfilter rules.<br>
+                        • <strong>Gate ③ App Socket Bind</strong>: Application listening on <code>0.0.0.0</code>.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Debug-Relevant System Paths -->
+            <div class="banner-container" style="background:#f6f8f6; border-color:var(--border-subtle); padding: 1.25rem;">
+                <div class="banner-title" style="font-size: 1.1rem; margin-bottom: 0.85rem;">
+                    📁 System Paths &amp; Config Files
+                </div>
+                <div class="cards-grid">
+                    <div class="path-card">
+                        <div class="path-header">
+                            <span class="path-code">/etc/hosts</span>
+                            <span class="priority-tag p-high">🔥 High Debug Value</span>
+                        </div>
+                        <p style="font-size:0.9rem; color:var(--text-body);">Static local IP-to-hostname mappings. Overrides external DNS name servers. Essential for database cluster alias configurations locally.</p>
+                    </div>
+                    <div class="path-card">
+                        <div class="path-header">
+                            <span class="path-code">/etc/resolv.conf</span>
+                            <span class="priority-tag p-high">🔥 High Debug Value</span>
+                        </div>
+                        <p style="font-size:0.9rem; color:var(--text-body);">System DNS resolver configuration file. Defines nameserver IP addresses (e.g. <code>nameserver 8.8.8.8</code>) used for domain name lookups.</p>
+                    </div>
+                    <div class="path-card">
+                        <div class="path-header">
+                            <span class="path-code">/etc/ssh/sshd_config</span>
+                            <span class="priority-tag p-sys">ℹ️ System Reference</span>
+                        </div>
+                        <p style="font-size:0.9rem; color:var(--text-body);">OpenSSH daemon configuration file. Controls SSH listening port (default 22), PasswordAuthentication settings, and PermitRootLogin security policies.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Incident Workflows -->
+        <div id="incidents" class="tab-panel">
+            <div class="incident-flow-card" data-category="network">
+                <div class="incident-card-header">
+                    <div class="incident-card-title-group">
+                        <h3 class="incident-card-title">🔌 Connection Refused, Port Unreachable &amp; DNS Failures</h3>
+                    </div>
+                    <div class="incident-card-actions">
+                        <span class="category-badge">Network &amp; Ports</span>
+                    </div>
+                </div>
+
+                <div class="incident-strategy-banner decision-box">
+                    <strong>🎯 Triage Strategy &amp; Intention Logic:</strong>
+                    <div class="step-list">
+                        <span>• <strong>Bind &amp; Handshake:</strong> Distinguish listening interface address (<code>0.0.0.0</code> public vs <code>127.0.0.1</code> local loopback) and TCP handshake state.</span>
+                        <span>• <strong>Firewall &amp; DNS Resolution:</strong> Test socket reachability (<code>nc -zv</code>), UFW drop policies, and nsswitch DNS resolution (<code>getent hosts</code>).</span>
+                    </div>
+                </div>
+
+                <div class="incident-steps-grid">
+                    <!-- Step 1 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 1: Socket Bind</span>
+                            <button class="cmd-node" onclick="openModal('ss-sockets')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">ss -tulpn</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>ss -tulpn | grep &lt;port&gt;</code>
+                        </div>
+                        <div class="step-intent-desc">Verify service socket listener is bound to 0.0.0.0 (all interfaces) not 127.0.0.1</div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 2: Handshake Test</span>
+                            <button class="cmd-node" onclick="openModal('nc-probe')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">nc -zv</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>nc -zv &lt;host&gt; &lt;port&gt;</code>
+                        </div>
+                        <div class="step-intent-desc">Test TCP handshake reachability (distinguish connection refused vs timeout drop)</div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 3: DNS Resolver</span>
+                            <button class="cmd-node" onclick="openModal('getent-hosts')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">getent hosts</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>getent hosts &lt;hostname&gt;</code>
+                        </div>
+                        <div class="step-intent-desc">Resolve hostname using system /etc/nsswitch.conf order (/etc/hosts -&gt; DNS)</div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="incident-step-card">
+                        <div class="step-header">
+                            <span class="step-tag-num">Step 4: Firewall Audit</span>
+                            <button class="cmd-node" onclick="openModal('ufw-status')">
+                                <span class="cmd-icon">&gt;_</span>
+                                <span class="cmd-label">ufw status</span>
+                            </button>
+                        </div>
+                        <div class="step-code-box">
+                            <code>sudo ufw status verbose</code>
+                        </div>
+                        <div class="step-intent-desc">Audit host kernel packet filtering rules and allow incoming target TCP port</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cards-grid" style="margin-top: 1rem;">
+                <div class="scenario-card">
+                    <h3 style="font-size:1.02rem; font-weight:700; color:var(--text-heading); margin-bottom:0.4rem;">🚫 Localhost Only Bind (127.0.0.1:8080 Trap)</h3>
+                    <p style="font-size:0.9rem; color:var(--text-body);">If <code>ss -tulpn</code> shows your FastAPI / Spark app bound to <code>127.0.0.1:8080</code>, remote HTTP clients outside the VM will receive <em>"Connection Refused"</em>. Update app configuration file to bind to <code>0.0.0.0:8080</code>.</p>
+                </div>
+                <div class="scenario-card">
+                    <h3 style="font-size:1.02rem; font-weight:700; color:var(--text-heading); margin-bottom:0.4rem;">🛡️ Port State 'Filtered' (Nmap Probe)</h3>
+                    <p style="font-size:0.9rem; color:var(--text-body);">When <code>nmap -p 8080</code> returns <code>filtered</code>, a firewall (AWS Cloud SG or local OS UFW) is silently dropping connection packets without replying. Check Cloud SG rules and run <code>sudo ufw status</code>.</p>
+                </div>
+                <div class="scenario-card">
+                    <h3 style="font-size:1.02rem; font-weight:700; color:var(--text-heading); margin-bottom:0.4rem;">⚡ Test Remote Database Connectivity (nc -zv)</h3>
+                    <p style="font-size:0.9rem; color:var(--text-body);">Run <code>nc -zv 172.16.0.5 5432</code> to test direct TCP socket handshakes to a remote PostgreSQL host in 1 second without installing heavy database client tools.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: All Commands Detail -->
+        <div id="detail" class="tab-panel">
+            <h3 style="font-size: 1.15rem; color: var(--text-heading); margin-bottom: 1.2rem;">📖 All Network &amp; Sockets Commands (Flat Scannable View)</h3>
+
+            <!-- ss -tulpn -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div class="cmd-title-group">
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> ss -tulpn</div>
+                        <div class="cmd-intent">Direct Netlink query of active listening sockets and owning processes</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ sudo ss -tulpn</span>
+                    <button class="copy-btn" onclick="copyText('sudo ss -tulpn')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">Netid  State   Recv-Q  Send-Q   Local Address:Port   Peer Address:Port  Process
+tcp    LISTEN  0       128            0.0.0.0:80          0.0.0.0:*      users:(("nginx",pid=1420,fd=6))
+tcp    LISTEN  0       128          127.0.0.1:5432        0.0.0.0:*      users:(("postgres",pid=2105,fd=3))</div>
+                <div class="metric-box">
+                    <span>🎯</span>
+                    <div><strong>RULE</strong>: Fast, modern kernel Netlink socket query replacement for legacy <code>netstat</code>.</div>
+                </div>
+            </div>
+
+            <!-- lsof -i -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div class="cmd-title-group">
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> lsof -i TCP:8080 -n -P</div>
+                        <div class="cmd-intent">Cross-check open network files &amp; reverse lookup PID owning specific TCP port</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ lsof -i TCP:8080 -n -P</span>
+                    <button class="copy-btn" onclick="copyText('lsof -i TCP:8080 -n -P')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+java    18420 spark    4u  IPv4  84210      0t0  TCP *:8080 (LISTEN)</div>
+            </div>
+
+            <!-- nc -zv -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div class="cmd-title-group">
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> nc -zv &lt;ip&gt; &lt;port&gt;</div>
+                        <div class="cmd-intent">Zero-I/O TCP port reachability probe (1 second handshake test)</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ nc -zv 172.16.0.5 5432</span>
+                    <button class="copy-btn" onclick="copyText('nc -zv 172.16.0.5 5432')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">Connection to 172.16.0.5 5432 port [tcp/postgresql] succeeded!</div>
+            </div>
+
+            <!-- curl -v -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div class="cmd-title-group">
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> curl -v &lt;url&gt;</div>
+                        <div class="cmd-intent">Verbose HTTP/HTTPS request handshake &amp; response header inspection</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ curl -v https://api.example.com/health</span>
+                    <button class="copy-btn" onclick="copyText('curl -v https://api.example.com/health')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">* Connected to api.example.com (10.0.0.20) port 443
+&gt; GET /health HTTP/1.1
+&lt; HTTP/1.1 200 OK</div>
+            </div>
+
+            <!-- ufw -->
+            <div class="cmd-block">
+                <div class="cmd-header">
+                    <div class="cmd-title-group">
+                        <div class="cmd-title"><span class="cmd-icon">&gt;_</span> ufw status / ufw allow 8080/tcp</div>
+                        <div class="cmd-intent">Manage Ubuntu Uncomplicated Firewall (UFW) rules &amp; netfilter status</div>
+                    </div>
+                </div>
+                <div class="code-box">
+                    <span class="code-text">$ sudo ufw status verbose</span>
+                    <button class="copy-btn" onclick="copyText('sudo ufw status verbose')">📋 Copy Command</button>
+                </div>
+                <div class="output-box">Status: active
+To                         Action      From
+--                         ------      ----
+80/tcp                     ALLOW IN    Anywhere
+8080/tcp                   ALLOW IN    Anywhere</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">Copied to clipboard!</div>
+
+    <script>
+        function switchTab(panelId, btnElem) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            if (!btnElem) {
+                btnElem = document.querySelector(`.tab-btn[onclick*="'${panelId}'"]`);
+            }
+            if (btnElem) btnElem.classList.add('active');
+            const target = document.getElementById(panelId);
+            if (target) target.classList.add('active');
+
+            try {
+                if (window.location.hash !== '#' + panelId) {
+                    history.replaceState(null, null, '#' + panelId);
+                }
+                localStorage.setItem('activeSubpageTab', panelId);
+            } catch (e) {}
+        }
+
+        function restoreSubpageTabState() {
+            let panel = 'concepts';
+            const hash = window.location.hash.replace('#', '').toLowerCase();
+            if (['incidents', 'workflows'].includes(hash)) {
+                panel = 'incidents';
+            } else if (['detail', 'commands'].includes(hash)) {
+                panel = 'detail';
+            } else if (['concepts', 'master'].includes(hash)) {
+                panel = 'concepts';
+            } else {
+                try {
+                    const saved = localStorage.getItem('activeSubpageTab');
+                    if (saved) panel = saved;
+                } catch (e) {}
+            }
+            switchTab(panel);
+        }
+
+        document.addEventListener('DOMContentLoaded', restoreSubpageTabState);
+        window.addEventListener('hashchange', restoreSubpageTabState);
+
+        function copyText(str) {
+            navigator.clipboard.writeText(str).then(() => {
+                const toast = document.getElementById('toast');
+                toast.textContent = `Copied "${str}" to clipboard!`;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+        }
+
+        function openModal(cmdId) {
+            const detailTabBtn = document.querySelectorAll('.tab-btn')[2];
+            if (detailTabBtn) switchTab('detail', detailTabBtn);
+        }
+
+        function openChildPage(catKey) {
+            window.location.href = catKey + '.html';
+        }
+    </script>
+</body>
+</html>
