@@ -935,14 +935,14 @@
 
         .terminal-title {
             font-size: 0.75rem;
-            color: #ffffff;
+            color: #c5bcac;
             font-family: var(--font-mono);
         }
 
         .copy-btn {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            color: #ffffff;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #c5bcac;
             font-size: 0.72rem;
             padding: 0.2rem 0.6rem;
             border-radius: 6px;
@@ -956,19 +956,25 @@
             font-weight: 600;
         }
 
-        .terminal-header,
         .terminal-window {
-            display: none !important;
+            background: #231b19;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            padding: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: #a8c890;
+            overflow-x: auto;
         }
 
         .terminal-prompt {
-            color: var(--c-tea-green);
+            color: #c4cb98;
             margin-bottom: 0.5rem;
             font-weight: 600;
         }
 
         .terminal-output {
-            color: #e2dedc;
+            color: #a8c890;
             white-space: pre;
             overflow-x: auto;
             line-height: 1.5;
@@ -1870,12 +1876,6 @@
                 font-size: 0.85rem;
                 white-space: normal;
                 word-break: break-word;
-            }
-
-            /* Hide Terminal Simulation Box on Mobile Viewports */
-            .terminal-header,
-            .terminal-window {
-                display: none !important;
             }
 
             .de-copy-btn, .modal-back-btn {
@@ -3524,12 +3524,12 @@
           {
                     "id": "type",
                     "category": "Identity & System",
-                    "name": "type &lt;cmd&gt;",
+                    "name": "type <cmd>",
                     "intent": "Check if command is shell builtin, alias, or PATH binary",
                     "mnemonic": "🔍 <strong>'What type of command is this?'</strong> Answers whether <span class='syn-tag'>python</span> is pointing to system <span class='syn-tag'>/usr/bin/python</span> or a virtualenv wrapper.",
                     "flags": [
                               {
-                                        "flag": "&lt;cmd&gt;",
+                                        "flag": "<cmd>",
                                         "desc": "Target command name to inspect (e.g. type python, type cd)"
                               }
                     ],
@@ -3549,18 +3549,18 @@
                     "category": "Identity & System",
                     "name": "man / tldr / help",
                     "intent": "Lookup official command manuals & concise real-world examples",
-                    "mnemonic": "📚 <strong>RTFM Hierarchy</strong>:<br>• <span class='syn-tag'>tldr &lt;cmd&gt;</span> = Short, practical community examples.<br>• <span class='syn-tag'>man &lt;cmd&gt;</span> = Official Unix manual page.<br>• <span class='syn-tag'>help &lt;cmd&gt;</span> = Builtin help for shell keywords (<span class='syn-tag'>cd</span>, <span class='syn-tag'>export</span>).<br>• <span class='syn-tag'>apropos &lt;keyword&gt;</span> = Search manuals by keyword.",
+                    "mnemonic": "📚 <strong>RTFM Hierarchy</strong>:<br>• <span class='syn-tag'>tldr <cmd></span> = Short, practical community examples.<br>• <span class='syn-tag'>man <cmd></span> = Official Unix manual page.<br>• <span class='syn-tag'>help <cmd></span> = Builtin help for shell keywords (<span class='syn-tag'>cd</span>, <span class='syn-tag'>export</span>).<br>• <span class='syn-tag'>apropos <keyword></span> = Search manuals by keyword.",
                     "flags": [
                               {
-                                        "flag": "tldr &lt;cmd&gt;",
+                                        "flag": "tldr <cmd>",
                                         "desc": "Displays short, practical, real-world command usage examples"
                               },
                               {
-                                        "flag": "man &lt;cmd&gt;",
+                                        "flag": "man <cmd>",
                                         "desc": "Opens full official system manual page in terminal pager"
                               },
                               {
-                                        "flag": "help &lt;cmd&gt;",
+                                        "flag": "help <cmd>",
                                         "desc": "Prints quick usage for shell builtins (e.g. help export)"
                               }
                     ],
@@ -3582,7 +3582,7 @@
                     "category": "Identity & System",
                     "name": "sudo -i / sudo -s",
                     "intent": "Elevate to root shell (login shell vs preserve env vars)",
-                    "mnemonic": "\n                    <div class=\"nohup-guide\">\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-green\">sudo -i (Root Login Shell)</span>\n                            <div>Loads root's clean <code>$HOME</code>, <code>.bashrc</code>, and system <code>$PATH</code>. Best for system maintenance.</div>\n                        </div>\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-orange\">sudo -s (Preserve Environment)</span>\n                            <div>Preserves your current user's environment variables (like <code>$SPARK_HOME</code> or <code>$PYENV_ROOT</code>).</div>\n                        </div>\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-blue\">sudo -u &lt;user&gt; (Run as Specific User)</span>\n                            <div>Execute a single command as target user (e.g. <code>sudo -u airflow python script.py</code>).</div>\n                        </div>\n                    </div>\n                ",
+                    "mnemonic": "\n                    <div class=\"nohup-guide\">\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-green\">sudo -i (Root Login Shell)</span>\n                            <div>Loads root's clean <code>$HOME</code>, <code>.bashrc</code>, and system <code>$PATH</code>. Best for system maintenance.</div>\n                        </div>\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-orange\">sudo -s (Preserve Environment)</span>\n                            <div>Preserves your current user's environment variables (like <code>$SPARK_HOME</code> or <code>$PYENV_ROOT</code>).</div>\n                        </div>\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-blue\">sudo -u <user> (Run as Specific User)</span>\n                            <div>Execute a single command as target user (e.g. <code>sudo -u airflow python script.py</code>).</div>\n                        </div>\n                    </div>\n                ",
                     "flags": [
                               {
                                         "flag": "sudo -i",
@@ -3593,7 +3593,7 @@
                                         "desc": "Root shell while preserving current user's environment variables"
                               },
                               {
-                                        "flag": "sudo -u &lt;user&gt;",
+                                        "flag": "sudo -u <user>",
                                         "desc": "Execute target command under specified user account (e.g. airflow)"
                               }
                     ],
@@ -3617,11 +3617,11 @@
                     "mnemonic": "🔑 <strong>'Keycard Manager'</strong>. <span class='syn-tag'>getcap</span> reads assigned capabilities; <span class='syn-tag'>setcap</span> assigns specific keycards (like <span class='syn-tag'>cap_net_bind_service</span>) without giving full root.",
                     "flags": [
                               {
-                                        "flag": "getcap &lt;binary&gt;",
+                                        "flag": "getcap <binary>",
                                         "desc": "Inspect capability flags assigned to executable binary"
                               },
                               {
-                                        "flag": "setcap 'cap=flags' &lt;binary&gt;",
+                                        "flag": "setcap 'cap=flags' <binary>",
                                         "desc": "Grant (+ep) or revoke (-ep) specific kernel capability to binary"
                               }
                     ],
@@ -3709,10 +3709,10 @@
                     "category": "Identity & System",
                     "name": "adduser / usermod",
                     "intent": "Provision system users & assign sudo / docker group access",
-                    "mnemonic": "\n                    <div class=\"nohup-guide\">\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-green\">sudo adduser &lt;user&gt;</span>\n                            <div>Interactively creates a new user account, password, and home directory (<code>/home/&lt;user&gt;</code>).</div>\n                        </div>\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-orange\">sudo usermod -aG sudo <user></span>\n                            <div>Appends user to <code>sudo</code> group (Ubuntu/Debian) or <code>wheel</code> group (RHEL/CentOS) for admin privileges.</div>\n                        </div>\n                    </div>\n                ",
+                    "mnemonic": "\n                    <div class=\"nohup-guide\">\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-green\">sudo adduser <user></span>\n                            <div>Interactively creates a new user account, password, and home directory (<code>/home/<user></code>).</div>\n                        </div>\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-orange\">sudo usermod -aG sudo <user></span>\n                            <div>Appends user to <code>sudo</code> group (Ubuntu/Debian) or <code>wheel</code> group (RHEL/CentOS) for admin privileges.</div>\n                        </div>\n                    </div>\n                ",
                     "flags": [
                               {
-                                        "flag": "sudo adduser &lt;user&gt;",
+                                        "flag": "sudo adduser <user>",
                                         "desc": "Create a new user account with home directory and shell"
                               },
                               {
@@ -3746,7 +3746,7 @@
                     "category": "Identity & System",
                     "name": "apt / apt-get",
                     "intent": "Manage Ubuntu software packages, repositories, and Dockerfile builds",
-                    "mnemonic": "\n                    <div class=\"nohup-guide\">\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-green\">sudo apt update (\"Refresh Phone Book\")</span>\n                            <div>Fetches latest package list from remote mirrors. <strong>Must run first</strong> before installing new tools in terminal or Dockerfiles!</div>\n                        </div>\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-orange\">apt (Interactive) vs apt-get (Scripts & Docker)</span>\n                            <div>Use <code>apt</code> in interactive terminal. Use <code>apt-get -y</code> in Dockerfiles/CI scripts (stable output across releases).</div>\n                        </div>\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-red\">remove (Keep Configs) vs purge (Delete Configs)</span>\n                            <div><code>apt remove</code> uninstalls binary but leaves <code>/etc</code> configs. <code>apt purge</code> deletes binary AND <code>/etc</code> configs.</div>\n                        </div>\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-blue\">apt-cache policy &lt;pkg&gt;</span>\n                            <div>Inspects installed version vs available candidate version & PPA repository mirror source.</div>\n                        </div>\n                    </div>\n                ",
+                    "mnemonic": "\n                    <div class=\"nohup-guide\">\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-green\">sudo apt update (\"Refresh Phone Book\")</span>\n                            <div>Fetches latest package list from remote mirrors. <strong>Must run first</strong> before installing new tools in terminal or Dockerfiles!</div>\n                        </div>\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-orange\">apt (Interactive) vs apt-get (Scripts & Docker)</span>\n                            <div>Use <code>apt</code> in interactive terminal. Use <code>apt-get -y</code> in Dockerfiles/CI scripts (stable output across releases).</div>\n                        </div>\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-red\">remove (Keep Configs) vs purge (Delete Configs)</span>\n                            <div><code>apt remove</code> uninstalls binary but leaves <code>/etc</code> configs. <code>apt purge</code> deletes binary AND <code>/etc</code> configs.</div>\n                        </div>\n                        <div class=\"nohup-section\">\n                            <span class=\"nohup-badge b-blue\">apt-cache policy <pkg></span>\n                            <div>Inspects installed version vs available candidate version & PPA repository mirror source.</div>\n                        </div>\n                    </div>\n                ",
                     "flags": [
                               {
                                         "flag": "sudo apt update",
@@ -3757,7 +3757,7 @@
                                         "desc": "Non-interactive package install for Dockerfiles & CI scripts"
                               },
                               {
-                                        "flag": "apt-cache policy &lt;pkg&gt;",
+                                        "flag": "apt-cache policy <pkg>",
                                         "desc": "Check installed version vs repo candidate and PPA source"
                               },
                               {
@@ -4321,12 +4321,12 @@
           {
                     "id": "dpkg-query",
                     "category": "Identity & Context",
-                    "name": "dpkg -s &lt;pkg&gt; & dpkg -S /path",
+                    "name": "dpkg -s <pkg> & dpkg -S /path",
                     "intent": "Query local Debian/Ubuntu installed package status, file listing, and ownership reverse-lookup",
-                    "mnemonic": "📦 <strong>Local Package Inspector</strong>. Use <span class='syn-tag'>dpkg -s &lt;pkg&gt;</span> to verify if package is installed before script execution; use <span class='syn-tag'>dpkg -S /path</span> to find which package installed a binary!",
+                    "mnemonic": "📦 <strong>Local Package Inspector</strong>. Use <span class='syn-tag'>dpkg -s <pkg></span> to verify if package is installed before script execution; use <span class='syn-tag'>dpkg -S /path</span> to find which package installed a binary!",
                     "flags": [
                               {
-                                        "flag": "dpkg -s &lt;pkg&gt;",
+                                        "flag": "dpkg -s <pkg>",
                                         "desc": "Check if package is installed (Status: install ok installed)"
                               },
                               {
@@ -4628,7 +4628,7 @@
                     "category": "Services & Logs",
                     "name": "podman / docker logs -f",
                     "intent": "Tail container application logs (Container PID 1)",
-                    "mnemonic": "🐳 <strong>No systemd inside containers!</strong> PID 1 inside containers is the app itself. Use <span class='syn-tag'>podman logs -f &lt;container&gt;</span> instead of <span class='syn-tag'>journalctl</span>.",
+                    "mnemonic": "🐳 <strong>No systemd inside containers!</strong> PID 1 inside containers is the app itself. Use <span class='syn-tag'>podman logs -f <container></span> instead of <span class='syn-tag'>journalctl</span>.",
                     "flags": [
                               {
                                         "flag": "-f / --follow",
