@@ -6591,59 +6591,82 @@
                             <div style="font-size:0.86rem; color:var(--text-body); line-height:1.55;">
                                 Before configuring SUID/SGID bits, you must understand how Linux reads file permissions in <code>ls -l</code> output:
                                 
-                                <div class="note-example-box">
-                                    <div class="note-example-title">1. Anatomy of <code>ls -l</code> Output (File Type, Owner &amp; Permissions)</div>
-                                    <pre style="background:#2b2622; color:#f5f0eb; padding:0.65rem; border-radius:6px; font-family:monospace; font-size:0.81rem; overflow-x:auto; line-height:1.4;">- rwx r-x r-- 1 sparkuser analytics 4096 Sep 27 10:00 pipeline.py
-│ └──┬──┘ └──┬──┘ └──┬──┘   │         │
-│    │       │       │       │         └── Group Owner (analytics)
-│    │       │       │       └────────── User Owner (sparkuser)
-│    │       │       └────────────────── Others / World Permissions (Read-only: r--)
-│    │       └────────────────────────── Group Permissions (Read &amp; Execute: r-x)
-│    └────────────────────────────────── User / Owner Permissions (Full: rwx)
-└─────────────────────────────────────── File Type (- = Regular file, d = Directory, l = Symlink)</pre>
+                                <div class="note-example-box" style="background:var(--bg-canvas); border:1px solid var(--border-subtle); padding:0.9rem; border-radius:10px;">
+                                    <div class="note-example-title" style="margin-bottom:0.75rem;">1. Anatomy of <code>ls -l</code> Output (File Type, Owner &amp; Permissions)</div>
+                                    
+                                    <!-- Command line output pill -->
+                                    <div style="font-family:var(--font-mono); font-size:0.9rem; font-weight:700; background:#24201d; color:#f5f0eb; padding:0.6rem 0.85rem; border-radius:8px; letter-spacing:0.04em; display:flex; gap:0.6rem; align-items:center; overflow-x:auto; margin-bottom:0.9rem; white-space:nowrap; border:1px solid #3a332e;">
+                                        <span style="color:#e06c75;" title="File Type">-</span><span style="color:#98c379;" title="Owner Permissions">rwx</span><span style="color:#d19a66;" title="Group Permissions">r-x</span><span style="color:#e5c07b;" title="World Permissions">r--</span>
+                                        <span style="color:#abb2bf;">1</span>
+                                        <span style="color:#61afef;" title="User Owner">sparkuser</span>
+                                        <span style="color:#c678dd;" title="Group Owner">analytics</span>
+                                        <span style="color:#abb2bf;">4096</span>
+                                        <span style="color:#abb2bf;">Sep 27 10:00</span>
+                                        <span style="color:#98c379;">pipeline.py</span>
+                                    </div>
+
+                                    <!-- Responsive breakdown cards -->
+                                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:0.5rem; font-size:0.81rem;">
+                                        <div style="background:var(--bg-card); padding:0.5rem 0.7rem; border-radius:6px; border-left:3px solid #e06c75; border:1px solid var(--border-subtle); border-left-width:3px;">
+                                            <strong style="color:var(--text-heading);">File Type (<code>-</code>)</strong>: Regular file (<code>d</code> = Directory, <code>l</code> = Symlink).
+                                        </div>
+                                        <div style="background:var(--bg-card); padding:0.5rem 0.7rem; border-radius:6px; border-left:3px solid #98c379; border:1px solid var(--border-subtle); border-left-width:3px;">
+                                            <strong style="color:var(--text-heading);">User Owner (<code>rwx</code>)</strong>: <code>sparkuser</code> has full Read, Write &amp; Execute.
+                                        </div>
+                                        <div style="background:var(--bg-card); padding:0.5rem 0.7rem; border-radius:6px; border-left:3px solid #d19a66; border:1px solid var(--border-subtle); border-left-width:3px;">
+                                            <strong style="color:var(--text-heading);">Group Owner (<code>r-x</code>)</strong>: <code>analytics</code> group has Read &amp; Execute (No Write).
+                                        </div>
+                                        <div style="background:var(--bg-card); padding:0.5rem 0.7rem; border-radius:6px; border-left:3px solid #e5c07b; border:1px solid var(--border-subtle); border-left-width:3px;">
+                                            <strong style="color:var(--text-heading);">Others / World (<code>r--</code>)</strong>: World permissions allow Read-Only (No Write/Exec).
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="note-example-box">
                                     <div class="note-example-title">2. How Octal / Numeric Permissions Work (4 - 2 - 1 Binary Math)</div>
-                                    Permissions are calculated using 3 binary permission bits for each role:
-                                    <br>• <strong><code>r</code> (Read) = 4</strong> | <strong><code>w</code> (Write) = 2</strong> | <strong><code>x</code> (Execute) = 1</strong> | <strong><code>-</code> (None) = 0</strong>
-                                    <br><br>
-                                    <table style="width:100%; border-collapse:collapse; margin-top:0.3rem; font-size:0.82rem; text-align:left;">
-                                        <thead>
-                                            <tr style="background:var(--bg-canvas); border-bottom:1px solid var(--border-subtle);">
-                                                <th style="padding:0.4rem;">Octal Number</th>
-                                                <th style="padding:0.4rem;">Symbolic Notation</th>
-                                                <th style="padding:0.4rem;">Math Formula</th>
-                                                <th style="padding:0.4rem;">Production DE Use Case</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr style="border-bottom:1px solid var(--border-subtle);">
-                                                <td style="padding:0.4rem;"><strong>755</strong></td>
-                                                <td style="padding:0.4rem;"><code>rwxr-xr-x</code></td>
-                                                <td style="padding:0.4rem;">(4+2+1) (4+0+1) (4+0+1)</td>
-                                                <td style="padding:0.4rem;">Executable scripts &amp; shared directories</td>
-                                            </tr>
-                                            <tr style="border-bottom:1px solid var(--border-subtle);">
-                                                <td style="padding:0.4rem;"><strong>644</strong></td>
-                                                <td style="padding:0.4rem;"><code>rw-r--r--</code></td>
-                                                <td style="padding:0.4rem;">(4+2+0) (4+0+0) (4+0+0)</td>
-                                                <td style="padding:0.4rem;">Standard configuration files &amp; code</td>
-                                            </tr>
-                                            <tr style="border-bottom:1px solid var(--border-subtle);">
-                                                <td style="padding:0.4rem;"><strong>600</strong></td>
-                                                <td style="padding:0.4rem;"><code>rw-------</code></td>
-                                                <td style="padding:0.4rem;">(4+2+0) (0+0+0) (0+0+0)</td>
-                                                <td style="padding:0.4rem;">Private SSH keys, secrets &amp; DB passwords</td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding:0.4rem;"><strong>700</strong></td>
-                                                <td style="padding:0.4rem;"><code>rwx------</code></td>
-                                                <td style="padding:0.4rem;">(4+2+1) (0+0+0) (0+0+0)</td>
-                                                <td style="padding:0.4rem;">Private user <code>~/.ssh</code> directory</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                    <div style="font-size:0.83rem; margin-bottom:0.6rem; color:var(--text-body);">
+                                        Permissions are calculated by adding binary values for each role:
+                                        <strong><code>r</code> (Read) = 4</strong> | <strong><code>w</code> (Write) = 2</strong> | <strong><code>x</code> (Exec) = 1</strong>
+                                    </div>
+                                    
+                                    <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+                                        <table style="width:100%; border-collapse:collapse; font-size:0.82rem; text-align:left; min-width:460px;">
+                                            <thead>
+                                                <tr style="background:var(--bg-canvas); border-bottom:2px solid var(--border-subtle);">
+                                                    <th style="padding:0.45rem 0.6rem; white-space:nowrap;">Octal</th>
+                                                    <th style="padding:0.45rem 0.6rem; white-space:nowrap;">Symbolic</th>
+                                                    <th style="padding:0.45rem 0.6rem; white-space:nowrap;">Math Breakdown</th>
+                                                    <th style="padding:0.45rem 0.6rem;">Production DE Use Case</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr style="border-bottom:1px solid var(--border-subtle);">
+                                                    <td style="padding:0.45rem 0.6rem; font-weight:700; color:var(--c-terracotta);">755</td>
+                                                    <td style="padding:0.45rem 0.6rem;"><code style="background:var(--bg-canvas); padding:2px 6px; border-radius:4px;">rwxr-xr-x</code></td>
+                                                    <td style="padding:0.45rem 0.6rem; font-family:var(--font-mono); font-size:0.78rem;">(4+2+1) (4+1) (4+1)</td>
+                                                    <td style="padding:0.45rem 0.6rem;">Executable scripts &amp; shared project folders</td>
+                                                </tr>
+                                                <tr style="border-bottom:1px solid var(--border-subtle);">
+                                                    <td style="padding:0.45rem 0.6rem; font-weight:700; color:var(--c-terracotta);">644</td>
+                                                    <td style="padding:0.45rem 0.6rem;"><code style="background:var(--bg-canvas); padding:2px 6px; border-radius:4px;">rw-r--r--</code></td>
+                                                    <td style="padding:0.45rem 0.6rem; font-family:var(--font-mono); font-size:0.78rem;">(4+2+0) (4+0) (4+0)</td>
+                                                    <td style="padding:0.45rem 0.6rem;">Standard code files (<code>.py</code>, <code>.sql</code>, <code>.cfg</code>)</td>
+                                                </tr>
+                                                <tr style="border-bottom:1px solid var(--border-subtle);">
+                                                    <td style="padding:0.45rem 0.6rem; font-weight:700; color:var(--c-terracotta);">600</td>
+                                                    <td style="padding:0.45rem 0.6rem;"><code style="background:var(--bg-canvas); padding:2px 6px; border-radius:4px;">rw-------</code></td>
+                                                    <td style="padding:0.45rem 0.6rem; font-family:var(--font-mono); font-size:0.78rem;">(4+2+0) (0+0) (0+0)</td>
+                                                    <td style="padding:0.45rem 0.6rem;">Private SSH keys (<code>id_rsa</code>), secrets &amp; passwords</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding:0.45rem 0.6rem; font-weight:700; color:var(--c-terracotta);">700</td>
+                                                    <td style="padding:0.45rem 0.6rem;"><code style="background:var(--bg-canvas); padding:2px 6px; border-radius:4px;">rwx------</code></td>
+                                                    <td style="padding:0.45rem 0.6rem; font-family:var(--font-mono); font-size:0.78rem;">(4+2+1) (0+0) (0+0)</td>
+                                                    <td style="padding:0.45rem 0.6rem;">Private user <code>~/.ssh/</code> directory</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
 
                                 <div class="note-example-box" style="background:#fdfaf7; border-left:4px solid var(--c-terracotta);">
