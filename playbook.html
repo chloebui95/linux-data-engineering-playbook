@@ -6611,40 +6611,40 @@
                                         <strong><code>r</code> (Read) = 4</strong> | <strong><code>w</code> (Write) = 2</strong> | <strong><code>x</code> (Exec) = 1</strong>
                                     </div>
                                     
-                                    <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
-                                        <table style="width:100%; border-collapse:collapse; font-size:0.82rem; text-align:left; min-width:460px;">
+                                    <div style="overflow-x:auto; -webkit-overflow-scrolling:touch; margin-top:0.4rem; border:1px solid var(--border-subtle); border-radius:8px;">
+                                        <table style="width:100%; border-collapse:collapse; font-size:0.82rem; text-align:left; min-width:540px;">
                                             <thead>
                                                 <tr style="background:var(--bg-canvas); border-bottom:2px solid var(--border-subtle);">
-                                                    <th style="padding:0.45rem 0.6rem; white-space:nowrap;">Octal</th>
-                                                    <th style="padding:0.45rem 0.6rem; white-space:nowrap;">Symbolic</th>
-                                                    <th style="padding:0.45rem 0.6rem; white-space:nowrap;">Math Breakdown</th>
-                                                    <th style="padding:0.45rem 0.6rem;">Production DE Use Case</th>
+                                                    <th style="padding:0.55rem 0.7rem; white-space:nowrap; width:12%;">Octal</th>
+                                                    <th style="padding:0.55rem 0.7rem; white-space:nowrap; width:22%;">Symbolic</th>
+                                                    <th style="padding:0.55rem 0.7rem; white-space:nowrap; width:28%;">Math Breakdown</th>
+                                                    <th style="padding:0.55rem 0.7rem;">Production DE Use Case</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr style="border-bottom:1px solid var(--border-subtle);">
-                                                    <td style="padding:0.45rem 0.6rem; font-weight:700; color:var(--c-terracotta);">755</td>
-                                                    <td style="padding:0.45rem 0.6rem;"><code style="background:var(--bg-canvas); padding:2px 6px; border-radius:4px;">rwxr-xr-x</code></td>
-                                                    <td style="padding:0.45rem 0.6rem; font-family:var(--font-mono); font-size:0.78rem;">(4+2+1) (4+1) (4+1)</td>
-                                                    <td style="padding:0.45rem 0.6rem;">Executable scripts &amp; shared project folders</td>
+                                                    <td style="padding:0.55rem 0.7rem; font-weight:700; color:var(--c-terracotta); white-space:nowrap;">755</td>
+                                                    <td style="padding:0.55rem 0.7rem; white-space:nowrap;"><code style="background:var(--bg-canvas); padding:2px 6px; border-radius:4px; white-space:nowrap; font-family:var(--font-mono); display:inline-block;">rwxr-xr-x</code></td>
+                                                    <td style="padding:0.55rem 0.7rem; font-family:var(--font-mono); font-size:0.78rem; white-space:nowrap;">(4+2+1) (4+1) (4+1)</td>
+                                                    <td style="padding:0.55rem 0.7rem;">Executable scripts &amp; shared project folders</td>
                                                 </tr>
                                                 <tr style="border-bottom:1px solid var(--border-subtle);">
-                                                    <td style="padding:0.45rem 0.6rem; font-weight:700; color:var(--c-terracotta);">644</td>
-                                                    <td style="padding:0.45rem 0.6rem;"><code style="background:var(--bg-canvas); padding:2px 6px; border-radius:4px;">rw-r--r--</code></td>
-                                                    <td style="padding:0.45rem 0.6rem; font-family:var(--font-mono); font-size:0.78rem;">(4+2+0) (4+0) (4+0)</td>
-                                                    <td style="padding:0.45rem 0.6rem;">Standard code files (<code>.py</code>, <code>.sql</code>, <code>.cfg</code>)</td>
+                                                    <td style="padding:0.55rem 0.7rem; font-weight:700; color:var(--c-terracotta); white-space:nowrap;">644</td>
+                                                    <td style="padding:0.55rem 0.7rem; white-space:nowrap;"><code style="background:var(--bg-canvas); padding:2px 6px; border-radius:4px; white-space:nowrap; font-family:var(--font-mono); display:inline-block;">rw-r--r--</code></td>
+                                                    <td style="padding:0.55rem 0.7rem; font-family:var(--font-mono); font-size:0.78rem; white-space:nowrap;">(4+2+0) (4+0) (4+0)</td>
+                                                    <td style="padding:0.55rem 0.7rem;">Standard code files (<code>.py</code>, <code>.sql</code>, <code>.cfg</code>)</td>
                                                 </tr>
                                                 <tr style="border-bottom:1px solid var(--border-subtle);">
-                                                    <td style="padding:0.45rem 0.6rem; font-weight:700; color:var(--c-terracotta);">600</td>
-                                                    <td style="padding:0.45rem 0.6rem;"><code style="background:var(--bg-canvas); padding:2px 6px; border-radius:4px;">rw-------</code></td>
-                                                    <td style="padding:0.45rem 0.6rem; font-family:var(--font-mono); font-size:0.78rem;">(4+2+0) (0+0) (0+0)</td>
-                                                    <td style="padding:0.45rem 0.6rem;">Private SSH keys (<code>id_rsa</code>), secrets &amp; passwords</td>
+                                                    <td style="padding:0.55rem 0.7rem; font-weight:700; color:var(--c-terracotta); white-space:nowrap;">600</td>
+                                                    <td style="padding:0.55rem 0.7rem; white-space:nowrap;"><code style="background:var(--bg-canvas); padding:2px 6px; border-radius:4px; white-space:nowrap; font-family:var(--font-mono); display:inline-block;">rw-------</code></td>
+                                                    <td style="padding:0.55rem 0.7rem; font-family:var(--font-mono); font-size:0.78rem; white-space:nowrap;">(4+2+0) (0+0) (0+0)</td>
+                                                    <td style="padding:0.55rem 0.7rem;">Private SSH keys (<code>id_rsa</code>), secrets &amp; passwords</td>
                                                 </tr>
                                                 <tr>
-                                                    <td style="padding:0.45rem 0.6rem; font-weight:700; color:var(--c-terracotta);">700</td>
-                                                    <td style="padding:0.45rem 0.6rem;"><code style="background:var(--bg-canvas); padding:2px 6px; border-radius:4px;">rwx------</code></td>
-                                                    <td style="padding:0.45rem 0.6rem; font-family:var(--font-mono); font-size:0.78rem;">(4+2+1) (0+0) (0+0)</td>
-                                                    <td style="padding:0.45rem 0.6rem;">Private user <code>~/.ssh/</code> directory</td>
+                                                    <td style="padding:0.55rem 0.7rem; font-weight:700; color:var(--c-terracotta); white-space:nowrap;">700</td>
+                                                    <td style="padding:0.55rem 0.7rem; white-space:nowrap;"><code style="background:var(--bg-canvas); padding:2px 6px; border-radius:4px; white-space:nowrap; font-family:var(--font-mono); display:inline-block;">rwx------</code></td>
+                                                    <td style="padding:0.55rem 0.7rem; font-family:var(--font-mono); font-size:0.78rem; white-space:nowrap;">(4+2+1) (0+0) (0+0)</td>
+                                                    <td style="padding:0.55rem 0.7rem;">Private user <code>~/.ssh/</code> directory</td>
                                                 </tr>
                                             </tbody>
                                         </table>
