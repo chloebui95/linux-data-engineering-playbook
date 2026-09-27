@@ -6584,9 +6584,93 @@
                 title: "🆔 User Identity, SUID Bits & Linux Kernel Capabilities",
                 lessonHtml: `
                     <div style="display:flex; flex-direction:column; gap:0.9rem;">
-                        <!-- Section 1: User Identity & Sudo Environment -->
+                        <!-- Section 01: Reading POSIX Permissions & Octal Math -->
                         <div class="note-section-card">
-                            <div class="note-header-badge">01 / PROCESS IDENTITY</div>
+                            <div class="note-header-badge">01 / PERMISSION FOUNDATIONS</div>
+                            <h4 style="font-weight:700; color:var(--text-heading); margin-bottom:0.4rem; font-size:0.96rem;">Reading POSIX Permissions: Octal Numbers, User Owner &amp; Group Owner</h4>
+                            <div style="font-size:0.86rem; color:var(--text-body); line-height:1.55;">
+                                Before configuring SUID/SGID bits, you must understand how Linux reads file permissions in <code>ls -l</code> output:
+                                
+                                <div class="note-example-box">
+                                    <div class="note-example-title">1. Anatomy of <code>ls -l</code> Output (File Type, Owner &amp; Permissions)</div>
+                                    <pre style="background:#2b2622; color:#f5f0eb; padding:0.65rem; border-radius:6px; font-family:monospace; font-size:0.81rem; overflow-x:auto; line-height:1.4;">- rwx r-x r-- 1 sparkuser analytics 4096 Sep 27 10:00 pipeline.py
+│ └──┬──┘ └──┬──┘ └──┬──┘   │         │
+│    │       │       │       │         └── Group Owner (analytics)
+│    │       │       │       └────────── User Owner (sparkuser)
+│    │       │       └────────────────── Others / World Permissions (Read-only: r--)
+│    │       └────────────────────────── Group Permissions (Read &amp; Execute: r-x)
+│    └────────────────────────────────── User / Owner Permissions (Full: rwx)
+└─────────────────────────────────────── File Type (- = Regular file, d = Directory, l = Symlink)</pre>
+                                </div>
+
+                                <div class="note-example-box">
+                                    <div class="note-example-title">2. How Octal / Numeric Permissions Work (4 - 2 - 1 Binary Math)</div>
+                                    Permissions are calculated using 3 binary permission bits for each role:
+                                    <br>• <strong><code>r</code> (Read) = 4</strong> | <strong><code>w</code> (Write) = 2</strong> | <strong><code>x</code> (Execute) = 1</strong> | <strong><code>-</code> (None) = 0</strong>
+                                    <br><br>
+                                    <table style="width:100%; border-collapse:collapse; margin-top:0.3rem; font-size:0.82rem; text-align:left;">
+                                        <thead>
+                                            <tr style="background:var(--bg-canvas); border-bottom:1px solid var(--border-subtle);">
+                                                <th style="padding:0.4rem;">Octal Number</th>
+                                                <th style="padding:0.4rem;">Symbolic Notation</th>
+                                                <th style="padding:0.4rem;">Math Formula</th>
+                                                <th style="padding:0.4rem;">Production DE Use Case</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr style="border-bottom:1px solid var(--border-subtle);">
+                                                <td style="padding:0.4rem;"><strong>755</strong></td>
+                                                <td style="padding:0.4rem;"><code>rwxr-xr-x</code></td>
+                                                <td style="padding:0.4rem;">(4+2+1) (4+0+1) (4+0+1)</td>
+                                                <td style="padding:0.4rem;">Executable scripts &amp; shared directories</td>
+                                            </tr>
+                                            <tr style="border-bottom:1px solid var(--border-subtle);">
+                                                <td style="padding:0.4rem;"><strong>644</strong></td>
+                                                <td style="padding:0.4rem;"><code>rw-r--r--</code></td>
+                                                <td style="padding:0.4rem;">(4+2+0) (4+0+0) (4+0+0)</td>
+                                                <td style="padding:0.4rem;">Standard configuration files &amp; code</td>
+                                            </tr>
+                                            <tr style="border-bottom:1px solid var(--border-subtle);">
+                                                <td style="padding:0.4rem;"><strong>600</strong></td>
+                                                <td style="padding:0.4rem;"><code>rw-------</code></td>
+                                                <td style="padding:0.4rem;">(4+2+0) (0+0+0) (0+0+0)</td>
+                                                <td style="padding:0.4rem;">Private SSH keys, secrets &amp; DB passwords</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding:0.4rem;"><strong>700</strong></td>
+                                                <td style="padding:0.4rem;"><code>rwx------</code></td>
+                                                <td style="padding:0.4rem;">(4+2+1) (0+0+0) (0+0+0)</td>
+                                                <td style="padding:0.4rem;">Private user <code>~/.ssh</code> directory</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="note-example-box" style="background:#fdfaf7; border-left:4px solid var(--c-terracotta);">
+                                    <div class="note-example-title" style="color:#7a3014;">💡 Easy Memory Shortcuts for Common Numbers (Quick Rules)</div>
+                                    <div style="font-size:0.84rem; line-height:1.6; color:var(--text-body);">
+                                        Instead of calculating binary math every time, memorize these 4 standard production rules:
+                                        <br>• <strong><code>0600</code> (Private Secrets) 🔒</strong> ➔ <em>"Read &amp; Write for Me ONLY"</em> (e.g., <code>id_rsa</code> SSH private keys, <code>.env</code> database passwords, TLS cert keys).
+                                        <br>• <strong><code>0700</code> (Private Folder) 📁</strong> ➔ <em>"Full Access for Me ONLY"</em> (e.g., <code>~/.ssh/</code> directory).
+                                        <br>• <strong><code>0644</code> (Public Code/Config) 📜</strong> ➔ <em>"I can Edit, Everyone else can Read"</em> (e.g., <code>airflow.cfg</code>, <code>dbt_project.yml</code>, Python code files).
+                                        <br>• <strong><code>0755</code> (Public Executable/Folder) ⚡</strong> ➔ <em>"I can Edit, Everyone else can Run &amp; Enter"</em> (e.g., <code>/usr/bin/python3</code>, DE pipeline project directories).
+                                    </div>
+                                </div>
+
+                                <div class="note-example-box">
+                                    <div class="note-example-title">3. The 4-Digit Octal Format (Special Bits Prefix)</div>
+                                    When you see a 4-digit numeric permission like <strong><code>4755</code></strong> or <strong><code>2775</code></strong>, the <strong>1st prefix digit</strong> controls special bits:
+                                    <br>• <strong><code>4</code> = SUID (Set User ID)</strong>: Executable binary runs with file owner's privileges (e.g. <code>4755</code> = <code>-rwsr-xr-x</code>).
+                                    <br>• <strong><code>2</code> = SGID (Set Group ID)</strong>: New files inherit the directory's group owner (e.g. <code>2775</code> = <code>drwxrwsr-x</code>).
+                                    <br>• <strong><code>1</code> = Sticky Bit</strong>: Protects files in world-writable dirs from deletion by non-owners (e.g. <code>1777</code> = <code>drwxrwxrwt</code>).
+                                    <br>• <strong><code>3</code> = SGID (2) + Sticky Bit (1)</strong>: Combined collaboration + deletion protection (<code>chmod 3775 /data/shared</code> = <code>drwxrwsr-t</code>).
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 02: User Identity & Sudo Environment -->
+                        <div class="note-section-card">
+                            <div class="note-header-badge">02 / PROCESS IDENTITY</div>
                             <h4 style="font-weight:700; color:var(--text-heading); margin-bottom:0.4rem; font-size:0.96rem;">User Identity, RUID vs EUID &amp; Sudo Environment Wiping</h4>
                             <div style="font-size:0.86rem; color:var(--text-body); line-height:1.55;">
                                 In Linux security architecture, every running process tracks 2 primary User IDs:
