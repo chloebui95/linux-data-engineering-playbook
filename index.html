@@ -6630,50 +6630,51 @@
                                         <table class="octal-table">
                                             <thead>
                                                 <tr style="background:var(--bg-canvas); border-bottom:2px solid var(--border-subtle);">
-                                                    <th style="padding:0.55rem 0.7rem; width:12%;">Octal</th>
-                                                    <th style="padding:0.55rem 0.7rem; width:22%;">Symbolic</th>
-                                                    <th style="padding:0.55rem 0.7rem; width:28%;">Math Breakdown</th>
-                                                    <th style="padding:0.55rem 0.7rem;">Production DE Use Case</th>
+                                                    <th style="padding:0.55rem 0.7rem; width:10%;">Octal</th>
+                                                    <th style="padding:0.55rem 0.7rem; width:18%;">Symbolic</th>
+                                                    <th style="padding:0.55rem 0.7rem; width:22%;">Math Breakdown</th>
+                                                    <th style="padding:0.55rem 0.7rem; white-space:normal !important;">💡 Quick Memory Rule &amp; Production DE Use Case</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr style="border-bottom:1px solid var(--border-subtle);">
-                                                    <td style="padding:0.55rem 0.7rem; font-weight:700; color:var(--c-terracotta);">755</td>
-                                                    <td style="padding:0.55rem 0.7rem;"><code style="background:var(--bg-canvas); padding:3px 8px; border-radius:4px; font-family:var(--font-mono);">rwxr&#8209;xr&#8209;x</code></td>
-                                                    <td style="padding:0.55rem 0.7rem; font-family:var(--font-mono); font-size:0.78rem;">(4+2+1) (4+1) (4+1)</td>
-                                                    <td style="padding:0.55rem 0.7rem;">Executable scripts &amp; shared project folders</td>
+                                                    <td style="padding:0.6rem 0.7rem; font-weight:700; color:var(--c-terracotta);">755</td>
+                                                    <td style="padding:0.6rem 0.7rem;"><code style="background:var(--bg-canvas); padding:3px 8px; border-radius:4px; font-family:var(--font-mono);">rwxr&#8209;xr&#8209;x</code></td>
+                                                    <td style="padding:0.6rem 0.7rem; font-family:var(--font-mono); font-size:0.78rem;">(4+2+1) (4+1) (4+1)</td>
+                                                    <td style="padding:0.6rem 0.7rem; white-space:normal !important;">
+                                                        <strong style="color:var(--text-heading);">"I Edit &amp; Run, Everyone else Reads &amp; Runs"</strong>
+                                                        <div style="font-size:0.79rem; color:var(--text-body); margin-top:2px;">Executable scripts, shared pipeline scripts &amp; shared project folders</div>
+                                                    </td>
                                                 </tr>
                                                 <tr style="border-bottom:1px solid var(--border-subtle);">
-                                                    <td style="padding:0.55rem 0.7rem; font-weight:700; color:var(--c-terracotta);">644</td>
-                                                    <td style="padding:0.55rem 0.7rem;"><code style="background:var(--bg-canvas); padding:3px 8px; border-radius:4px; font-family:var(--font-mono);">rw&#8209;r&#8209;&#8209;r&#8209;&#8209;</code></td>
-                                                    <td style="padding:0.55rem 0.7rem; font-family:var(--font-mono); font-size:0.78rem;">(4+2+0) (4+0) (4+0)</td>
-                                                    <td style="padding:0.55rem 0.7rem;">Standard code files (<code>.py</code>, <code>.sql</code>, <code>.cfg</code>)</td>
+                                                    <td style="padding:0.6rem 0.7rem; font-weight:700; color:var(--c-terracotta);">644</td>
+                                                    <td style="padding:0.6rem 0.7rem;"><code style="background:var(--bg-canvas); padding:3px 8px; border-radius:4px; font-family:var(--font-mono);">rw&#8209;r&#8209;&#8209;r&#8209;&#8209;</code></td>
+                                                    <td style="padding:0.6rem 0.7rem; font-family:var(--font-mono); font-size:0.78rem;">(4+2+0) (4+0) (4+0)</td>
+                                                    <td style="padding:0.6rem 0.7rem; white-space:normal !important;">
+                                                        <strong style="color:var(--text-heading);">"I Edit, Everyone else Read-Only"</strong>
+                                                        <div style="font-size:0.79rem; color:var(--text-body); margin-top:2px;">Standard code files (<code>.py</code>, <code>.sql</code>), configs (<code>airflow.cfg</code>, <code>dbt_project.yml</code>)</div>
+                                                    </td>
                                                 </tr>
                                                 <tr style="border-bottom:1px solid var(--border-subtle);">
-                                                    <td style="padding:0.55rem 0.7rem; font-weight:700; color:var(--c-terracotta);">600</td>
-                                                    <td style="padding:0.55rem 0.7rem;"><code style="background:var(--bg-canvas); padding:3px 8px; border-radius:4px; font-family:var(--font-mono);">rw&#8209;&#8209;&#8209;&#8209;&#8209;&#8209;&#8209;</code></td>
-                                                    <td style="padding:0.55rem 0.7rem; font-family:var(--font-mono); font-size:0.78rem;">(4+2+0) (0+0) (0+0)</td>
-                                                    <td style="padding:0.55rem 0.7rem;">Private SSH keys (<code>id_rsa</code>), secrets &amp; passwords</td>
+                                                    <td style="padding:0.6rem 0.7rem; font-weight:700; color:var(--c-terracotta);">600</td>
+                                                    <td style="padding:0.6rem 0.7rem;"><code style="background:var(--bg-canvas); padding:3px 8px; border-radius:4px; font-family:var(--font-mono);">rw&#8209;&#8209;&#8209;&#8209;&#8209;&#8209;&#8209;</code></td>
+                                                    <td style="padding:0.6rem 0.7rem; font-family:var(--font-mono); font-size:0.78rem;">(4+2+0) (0+0) (0+0)</td>
+                                                    <td style="padding:0.6rem 0.7rem; white-space:normal !important;">
+                                                        <strong style="color:var(--text-heading);">"Read &amp; Write for Me ONLY 🔒"</strong>
+                                                        <div style="font-size:0.79rem; color:var(--text-body); margin-top:2px;">Private SSH keys (<code>id_rsa</code>), <code>.env</code> database passwords &amp; TLS certificates</div>
+                                                    </td>
                                                 </tr>
                                                 <tr>
-                                                    <td style="padding:0.55rem 0.7rem; font-weight:700; color:var(--c-terracotta);">700</td>
-                                                    <td style="padding:0.55rem 0.7rem;"><code style="background:var(--bg-canvas); padding:3px 8px; border-radius:4px; font-family:var(--font-mono);">rwx&#8209;&#8209;&#8209;&#8209;&#8209;&#8209;</code></td>
-                                                    <td style="padding:0.55rem 0.7rem; font-family:var(--font-mono); font-size:0.78rem;">(4+2+1) (0+0) (0+0)</td>
-                                                    <td style="padding:0.55rem 0.7rem;">Private user <code>~/.ssh/</code> directory</td>
+                                                    <td style="padding:0.6rem 0.7rem; font-weight:700; color:var(--c-terracotta);">700</td>
+                                                    <td style="padding:0.6rem 0.7rem;"><code style="background:var(--bg-canvas); padding:3px 8px; border-radius:4px; font-family:var(--font-mono);">rwx&#8209;&#8209;&#8209;&#8209;&#8209;&#8209;</code></td>
+                                                    <td style="padding:0.6rem 0.7rem; font-family:var(--font-mono); font-size:0.78rem;">(4+2+1) (0+0) (0+0)</td>
+                                                    <td style="padding:0.6rem 0.7rem; white-space:normal !important;">
+                                                        <strong style="color:var(--text-heading);">"Full Access for Me ONLY 📁"</strong>
+                                                        <div style="font-size:0.79rem; color:var(--text-body); margin-top:2px;">Private user <code>~/.ssh/</code> directory &amp; private workspace subfolders</div>
+                                                    </td>
                                                 </tr>
                                             </tbody>
                                         </table>
-                                    </div>
-                                </div>
-
-                                <div class="note-example-box" style="background:#fdfaf7; border-left:4px solid var(--c-terracotta);">
-                                    <div class="note-example-title" style="color:#7a3014;">💡 Easy Memory Shortcuts for Common Numbers (Quick Rules)</div>
-                                    <div style="font-size:0.84rem; line-height:1.6; color:var(--text-body);">
-                                        Instead of calculating binary math every time, memorize these 4 standard production rules:
-                                        <br>• <strong><code>0600</code> (Private Secrets) 🔒</strong> ➔ <em>"Read &amp; Write for Me ONLY"</em> (e.g., <code>id_rsa</code> SSH private keys, <code>.env</code> database passwords, TLS cert keys).
-                                        <br>• <strong><code>0700</code> (Private Folder) 📁</strong> ➔ <em>"Full Access for Me ONLY"</em> (e.g., <code>~/.ssh/</code> directory).
-                                        <br>• <strong><code>0644</code> (Public Code/Config) 📜</strong> ➔ <em>"I can Edit, Everyone else can Read"</em> (e.g., <code>airflow.cfg</code>, <code>dbt_project.yml</code>, Python code files).
-                                        <br>• <strong><code>0755</code> (Public Executable/Folder) ⚡</strong> ➔ <em>"I can Edit, Everyone else can Run &amp; Enter"</em> (e.g., <code>/usr/bin/python3</code>, DE pipeline project directories).
                                     </div>
                                 </div>
 
