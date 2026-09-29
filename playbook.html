@@ -6615,7 +6615,7 @@
 │  │   │   │  └────────────────── Hard Links Count (1)
 │  │   │   └───────────────────── Others / World Permissions (Read-Only: r--)
 │  │   └───────────────────────── Group Permissions (Read &amp; Execute: r-x)
-│  └────────────────────────────── User Owner Permissions (Full Access: rwx)
+│  └───────────────────────────── User Owner Permissions (Full Access: rwx)
 └──────────────────────────────── File Type (- = Regular file, d = Directory, l = Symlink)</pre>
                                 </div>
 
@@ -6748,6 +6748,20 @@
                                 <br><br>
                                 • <strong><code>CAP_NET_BIND_SERVICE</code> (⭐ Key DE Capability):</strong> Opens the door to bind sockets to low ports (&lt; 1024 like 80/443) as a regular user <code>ubuntu</code> — <strong>without needing <code>sudo</code> or root master key!</strong>
                                 <br>&nbsp;&nbsp;&nbsp;&nbsp;• <em>Grant Command:</em> <code>sudo setcap 'cap_net_bind_service=+ep' /usr/bin/python3.10</code>
+                                
+                                <div class="note-example-box" style="margin-top:0.6rem; background:#fdfaf7; border-left:4px solid var(--c-terracotta);">
+                                    <div class="note-example-title" style="color:#7a3014;">💡 What does "+ep" actually mean in <code>setcap</code>? (Flag Breakdown)</div>
+                                    <div style="font-size:0.83rem; line-height:1.55; color:var(--text-body);">
+                                        When you run <code>setcap 'cap_net_bind_service=+ep'</code>, the <code>+ep</code> breaks down into 3 parts:
+                                        <br>• <strong><code>+</code> (Operator - Add)</strong> ➔ <strong>Enable</strong> this capability on the file (use <code>-</code> to strip/remove).
+                                        <br>• <strong><code>e</code> (Effective)</strong> ➔ <strong>Active Right Now!</strong> Tells the kernel to activate this power as soon as the binary executes.
+                                        <br>• <strong><code>p</code> (Permitted)</strong> ➔ <strong>Authorized!</strong> Grants permission for the binary to use this capability.
+                                        <br>• <em>(Bonus <code>i</code> = Inheritable)</em> ➔ Allows child processes spawned by this program to inherit the capability.
+                                        <br><br>
+                                        👉 <strong>Summary:</strong> <code>+ep</code> means <em>"Enable (<code>+</code>) this keycard, permit (<code>p</code>) the program to use it, and make it effective (<code>e</code>) immediately when executed!"</em>
+                                    </div>
+                                </div>
+                                
                                 <br>• <strong><code>CAP_SYS_PTRACE</code>:</strong> Keycard allowing profilers like <code>py-spy</code> or <code>gdb</code> to inspect memory of another running process without full root disk access.
                                 <br>• <strong><code>CAP_CHOWN</code>:</strong> Keycard allowing container startup scripts to change file ownership without full root access.
                             </div>
